@@ -33,4 +33,4 @@ const listFood = async (req, res) => {
     }
 };
 
-export { addFood, listFood };
+export { addFood, listFood };    

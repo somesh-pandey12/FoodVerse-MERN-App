@@ -14,7 +14,7 @@ const FoodDisplay = () => {
                         key={index} 
                         id={item._id} 
                         name={item.name} 
-                        description={item.description} 
+                        description={item.description}
                         price={item.price} 
                         image={item.image} 
                     />
@@ -23,5 +23,4 @@ const FoodDisplay = () => {
         </div>
     )
 }
-
 export default FoodDisplay;
