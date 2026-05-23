@@ -1,45 +1,61 @@
-import { createContext, useEffect, useState } from "react";
+import React, {
+    createContext,
+    useEffect,
+    useState
+} from "react";
+
 import axios from "axios";
 
 export const StoreContext = createContext(null);
 
 const StoreContextProvider = (props) => {
 
-    // ================= STATES =================
     const [food_list, setFoodList] = useState([]);
     const [cartItems, setCartItems] = useState({});
     const [token, setToken] = useState("");
 
-    // ================= BACKEND URL =================
     const url = "http://localhost:4000";
 
-    // ================= ADD TO CART =================
+    // Add To Cart
     const addToCart = async (itemId) => {
 
-        // Update frontend cart instantly
         if (!cartItems[itemId]) {
+
             setCartItems((prev) => ({
                 ...prev,
                 [itemId]: 1,
             }));
+
         } else {
+
             setCartItems((prev) => ({
                 ...prev,
                 [itemId]: prev[itemId] + 1,
             }));
         }
 
-        // Update backend cart
+        // Backend Sync
         if (token) {
-            await axios.post(
-                url + "/api/cart/add",
-                { itemId },
-                { headers: { token } }
-            );
+
+            try {
+
+                await axios.post(
+                    `${url}/api/cart/add`,
+                    { itemId },
+                    { headers: { token } }
+                );
+
+            } catch (error) {
+
+                console.log(
+                    "Error adding item to cart:",
+                    error
+                );
+            }
         }
     };
 
-    // ================= REMOVE FROM CART =================
+    // Remove From Cart
     const removeFromCart = async (itemId) => {
 
         setCartItems((prev) => ({
@@ -47,18 +63,75 @@ const StoreContextProvider = (props) => {
             [itemId]: prev[itemId] - 1,
         }));
 
-        // Update backend cart
+        // Backend Sync
         if (token) {
-            await axios.post(
-                url + "/api/cart/remove",
-                { itemId },
-                { headers: { token } }
+
+            try {
+
+                await axios.post(
+                    `${url}/api/cart/remove`,
+                    { itemId },
+                    { headers: { token } }
+                );
+
+            } catch (error) {
+
+                console.log(
+                    "Error removing item from cart:",
+                    error
+                );
+            }
+        }
+    };
+
+    // Fetch Food List
+    const fetchFoodList = async () => {
+
+        try {
+
+            const response = await axios.get(
+                `${url}/api/food/list`
+            );
+
+            if (response.data.success) {
+
+                setFoodList(response.data.data);
+            }
+
+        } catch (error) {
+
+            console.error(
+                "Error fetching food list:",
+                error
             );
         }
     };
 
-    // ================= TOTAL CART AMOUNT =================
+    // Load Cart Data
+    const loadCartData = async (token) => {
+
+        try {
+
+            const response = await axios.post(
+                `${url}/api/cart/get`,
+                {},
+                { headers: { token } }
+            );
+
+            setCartItems(response.data.cartData);
+
+        } catch (error) {
+
+            console.log(
+                "Error loading cart data:",
+                error
+            );
+        }
+    };
+
+    // Total Cart Amount
     const getTotalCartAmount = () => {
+
         let totalAmount = 0;
 
         for (const item in cartItems) {
@@ -70,7 +143,9 @@ const StoreContextProvider = (props) => {
                 );
 
                 if (itemInfo) {
-                    totalAmount += itemInfo.price * cartItems[item];
+
+                    totalAmount +=
+                        itemInfo.price * cartItems[item];
                 }
             }
         }
@@ -78,39 +153,23 @@ const StoreContextProvider = (props) => {
         return totalAmount;
     };
 
-    // ================= FETCH FOOD LIST =================
-    const fetchFoodList = async () => {
-        try {
+    // Total Cart Items
+    const getTotalCartItems = () => {
 
-            const response = await axios.get(
-                url + "/api/food/list"
-            );
+        let totalItems = 0;
 
-            setFoodList(response.data.data);
+        for (const item in cartItems) {
 
-        } catch (error) {
-            console.log("Error fetching food list:", error);
+            if (cartItems[item] > 0) {
+
+                totalItems += cartItems[item];
+            }
         }
+
+        return totalItems;
     };
 
-    // ================= LOAD CART DATA =================
-    const loadCartData = async (token) => {
-        try {
-
-            const response = await axios.post(
-                url + "/api/cart/get",
-                {},
-                { headers: { token } }
-            );
-
-            setCartItems(response.data.cartData);
-
-        } catch (error) {
-            console.log("Error loading cart data:", error);
-        }
-    };
-
-    // ================= LOAD DATA ON REFRESH =================
+    // Initial Load
     useEffect(() => {
 
         async function loadData() {
@@ -119,7 +178,8 @@ const StoreContextProvider = (props) => {
 
             if (localStorage.getItem("token")) {
 
-                const savedToken = localStorage.getItem("token");
+                const savedToken =
+                    localStorage.getItem("token");
 
                 setToken(savedToken);
 
@@ -131,22 +191,32 @@ const StoreContextProvider = (props) => {
 
     }, []);
 
-    // ================= CONTEXT VALUE =================
+    // Context Values
     const contextValue = {
+
         food_list,
+
         cartItems,
         setCartItems,
+
         addToCart,
         removeFromCart,
+
         getTotalCartAmount,
+        getTotalCartItems,
+
         url,
+
         token,
         setToken,
     };
 
     return (
+
         <StoreContext.Provider value={contextValue}>
+
             {props.children}
+
         </StoreContext.Provider>
     );
 };

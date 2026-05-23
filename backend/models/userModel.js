@@ -7,7 +7,7 @@ const userSchema = new mongoose.Schema({
     cartData: { type: Object, default: {} }
 }, { minimize: false });
 
-// Pehle check karein ki model pehle se bana toh nahi hai, nahi toh naya banayein
+
 const userModel = mongoose.models.user || mongoose.model("user", userSchema);
 
 export default userModel; // <--- Yeh line sabse zaroori hai

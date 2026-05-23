@@ -1,10 +1,6 @@
-import React from "react";
-
-const { useContext, useState } = React;
-
+import React, { useContext, useState } from "react";
 import { StoreContext } from "../context/StoreContext";
 import axios from "axios";
-
 // import "./PlaceOrder.css";
 
 const PlaceOrder = () => {
@@ -30,11 +26,12 @@ const PlaceOrder = () => {
     });
 
     const onChangeHandler = (event) => {
+
         const name = event.target.name;
         const value = event.target.value;
 
-        setData((data) => ({
-            ...data,
+        setData((prevData) => ({
+            ...prevData,
             [name]: value,
         }));
     };
@@ -87,25 +84,53 @@ const PlaceOrder = () => {
 
         } catch (error) {
 
-            console.error(
-                "Order processing failed",
-                error
-            );
+            console.error("Order processing failed", error);
         }
     };
 
     return (
+
         <form
             onSubmit={placeOrderSubmit}
-            className="place-order-container"
+            className='place-order'
+            style={{
+                display: "flex",
+                alignItems: "start",
+                justifyContent: "space-between",
+                gap: "50px",
+                marginTop: "100px"
+            }}
         >
-            <div className="place-order-left">
 
-                <p className="title">
+            {/* Left Side */}
+            <div
+                className="place-order-left"
+                style={{
+                    width: "100%",
+                    maxWidth: "max(30vw, 500px)",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "15px"
+                }}
+            >
+
+                <p
+                    className="title"
+                    style={{
+                        fontSize: "30px",
+                        fontWeight: "600",
+                        marginBottom: "30px",
+                        color: "#262626"
+                    }}
+                >
                     Delivery Information
                 </p>
 
-                <div className="multi-fields">
+                <div
+                    className="multi-fields"
+                    style={{ display: "flex", gap: "10px" }}
+                >
+
                     <input
                         required
                         name="firstName"
@@ -113,6 +138,7 @@ const PlaceOrder = () => {
                         value={data.firstName}
                         type="text"
                         placeholder="First Name"
+                        style={inputStyle}
                     />
 
                     <input
@@ -122,7 +148,9 @@ const PlaceOrder = () => {
                         value={data.lastName}
                         type="text"
                         placeholder="Last Name"
+                        style={inputStyle}
                     />
+
                 </div>
 
                 <input
@@ -131,7 +159,8 @@ const PlaceOrder = () => {
                     onChange={onChangeHandler}
                     value={data.email}
                     type="email"
-                    placeholder="Email address"
+                    placeholder="Email Address"
+                    style={inputStyle}
                 />
 
                 <input
@@ -140,10 +169,15 @@ const PlaceOrder = () => {
                     onChange={onChangeHandler}
                     value={data.street}
                     type="text"
-                    placeholder="Street/Area"
+                    placeholder="Street"
+                    style={inputStyle}
                 />
 
-                <div className="multi-fields">
+                <div
+                    className="multi-fields"
+                    style={{ display: "flex", gap: "10px" }}
+                >
+
                     <input
                         required
                         name="city"
@@ -151,6 +185,7 @@ const PlaceOrder = () => {
                         value={data.city}
                         type="text"
                         placeholder="City"
+                        style={inputStyle}
                     />
 
                     <input
@@ -160,17 +195,24 @@ const PlaceOrder = () => {
                         value={data.state}
                         type="text"
                         placeholder="State"
+                        style={inputStyle}
                     />
+
                 </div>
 
-                <div className="multi-fields">
+                <div
+                    className="multi-fields"
+                    style={{ display: "flex", gap: "10px" }}
+                >
+
                     <input
                         required
                         name="zipcode"
                         onChange={onChangeHandler}
                         value={data.zipcode}
                         type="text"
-                        placeholder="Zip code"
+                        placeholder="Zip Code"
+                        style={inputStyle}
                     />
 
                     <input
@@ -180,7 +222,9 @@ const PlaceOrder = () => {
                         value={data.country}
                         type="text"
                         placeholder="Country"
+                        style={inputStyle}
                     />
+
                 </div>
 
                 <input
@@ -190,65 +234,121 @@ const PlaceOrder = () => {
                     value={data.phone}
                     type="text"
                     placeholder="Phone"
+                    style={inputStyle}
                 />
+
             </div>
 
-            <div className="place-order-right">
+            {/* Right Side */}
+            <div
+                className="place-order-right"
+                style={{
+                    width: "100%",
+                    maxWidth: "max(40%, 500px)"
+                }}
+            >
 
-                <div className="cart-total">
+                <div
+                    className="cart-total"
+                    style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "20px"
+                    }}
+                >
 
-                    <h2>
-                        Cart Totals
-                    </h2>
+                    <h2>Cart Totals</h2>
 
-                    <div className="cart-total-details">
-                        <p>Subtotal</p>
-                        <p>
-                            ₹{getTotalCartAmount()}
-                        </p>
-                    </div>
+                    <div>
 
-                    <hr />
+                        <div
+                            className="cart-total-details"
+                            style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                color: "#555"
+                            }}
+                        >
+                            <p>Subtotal</p>
+                            <p>₹{getTotalCartAmount()}</p>
+                        </div>
 
-                    <div className="cart-total-details">
-                        <p>Delivery Fee</p>
+                        <hr style={{ margin: "10px 0px" }} />
 
-                        <p>
-                            ₹{
-                                getTotalCartAmount() === 0
-                                    ? 0
-                                    : 40
-                            }
-                        </p>
-                    </div>
+                        <div
+                            className="cart-total-details"
+                            style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                color: "#555"
+                            }}
+                        >
+                            <p>Delivery Fee</p>
 
-                    <hr />
+                            <p>
+                                ₹{
+                                    getTotalCartAmount() === 0
+                                        ? 0
+                                        : 40
+                                }
+                            </p>
+                        </div>
 
-                    <div className="cart-total-details">
-                        <b>Total</b>
+                        <hr style={{ margin: "10px 0px" }} />
 
-                        <b>
-                            ₹{
-                                getTotalCartAmount() === 0
-                                    ? 0
-                                    : getTotalCartAmount() + 40
-                            }
-                        </b>
+                        <div
+                            className="cart-total-details"
+                            style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                fontWeight: "600",
+                                color: "#000"
+                            }}
+                        >
+                            <b>Total</b>
+
+                            <b>
+                                ₹{
+                                    getTotalCartAmount() === 0
+                                        ? 0
+                                        : getTotalCartAmount() + 40
+                                }
+                            </b>
+                        </div>
+
                     </div>
 
                     <button
                         type="submit"
-                        disabled={
-                            getTotalCartAmount() === 0
-                        }
+                        disabled={getTotalCartAmount() === 0}
+                        style={{
+                            border: "none",
+                            color: "white",
+                            backgroundColor: "#ff4c24",
+                            width: "max(15vw, 200px)",
+                            padding: "12px 0px",
+                            borderRadius: "4px",
+                            cursor: "pointer",
+                            marginTop: "20px"
+                        }}
                     >
                         PROCEED TO PAYMENT
                     </button>
 
                 </div>
+
             </div>
+
         </form>
     );
+};
+
+const inputStyle = {
+    width: "100%",
+    padding: "10px",
+    border: "1px solid #c5c5c5",
+    borderRadius: "4px",
+    outline: "none",
 };
 
 export default PlaceOrder;
