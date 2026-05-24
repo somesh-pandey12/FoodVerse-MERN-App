@@ -1,8 +1,15 @@
 import foodModel from "../models/foodModel.js";
-import fs from 'fs';
+import fs from "fs";
 
-// Food Item Add karne ka logic
 const addFood = async (req, res) => {
+
+    if (!req.file) {
+        return res.json({
+            success: false,
+            message: "Image upload karna zaroori hai"
+        });
+    }
+
     let image_filename = `${req.file.filename}`;
 
     const food = new foodModel({
@@ -14,35 +21,75 @@ const addFood = async (req, res) => {
     });
 
     try {
+
         await food.save();
-        res.json({ success: true, message: "Food Added Successfully" });
+
+        res.json({
+            success: true,
+            message: "Food Item Added successfully!"
+        });
+
     } catch (error) {
+
         console.log(error);
-        res.json({ success: false, message: "Error adding food" });
+
+        res.json({
+            success: false,
+            message: "Error adding food item"
+        });
     }
 };
 
-  const listFood = async (req, res) => {
+const listFood = async (req, res) => {
+
     try {
+
         const foods = await foodModel.find({});
-        res.json({ success: true, data: foods });
+
+        res.json({
+            success: true,
+            data: foods
+        });
+
     } catch (error) {
+
         console.log(error);
-        res.json({ success: false, message: "Error fetching food list" });
+
+        res.json({
+            success: false,
+            message: "Error fetching food list"
+        });
     }
 };
+
 const removeFood = async (req, res) => {
+
     try {
+
         const food = await foodModel.findById(req.body.id);
-        
+
         fs.unlink(`uploads/${food.image}`, () => {});
 
         await foodModel.findByIdAndDelete(req.body.id);
-        res.json({ success: true, message: "Food Removed Successfully!" });
+
+        res.json({
+            success: true,
+            message: "Food Item Removed successfully!"
+        });
+
     } catch (error) {
+
         console.log(error);
-        res.json({ success: false, message: "Error deleting food item" });
+
+        res.json({
+            success: false,
+            message: "Error removing food item"
+        });
     }
 };
 
-export { addFood, listFood, removeFood };
+export {
+    addFood,
+    listFood,
+    removeFood
+};

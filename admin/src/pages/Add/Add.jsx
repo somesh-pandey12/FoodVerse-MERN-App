@@ -1,12 +1,14 @@
-import React from "react";
-
-const { useState } = React;
+import React, { useState } from 'react';
 import axios from 'axios';
 
-const Add = ({ url }) => {
+const Add = () => {
+    const url = "http://localhost:4000";
     const [image, setImage] = useState(false);
     const [data, setData] = useState({
-        name: "", description: "", price: "", category: "Salad"
+        name: "",
+        description: "",
+        price: "",
+        category: "Burger"
     });
 
     const onChangeHandler = (event) => {
@@ -24,57 +26,77 @@ const Add = ({ url }) => {
         formData.append("category", data.category);
         formData.append("image", image);
 
-        // Multi-part form data backend ke upload controller ko bhejenge
-        const response = await axios.post(`${url}/api/food/add`, formData);
-        if (response.data.success) {
-            setData({ name: "", description: "", price: "", category: "Salad" });
-            setImage(false);
-            alert("Food Product Added Successfully!");
-        } else {
-            alert(response.data.message);
+        try {
+            const response = await axios.post(`${url}/api/food/add`, formData);
+            if (response.data.success) {
+                setData({ name: "", description: "", price: "", category: "Burger" });
+                setImage(false);
+                alert(response.data.message);
+            } else {
+                alert(response.data.message);
+            }
+        } catch (error) {
+            alert("Backend status check karo!");
         }
     };
 
     return (
-        <div className='add-product-panel'>
-            <form className='flex-col' onSubmit={onSubmitHandler}>
-                <div className="add-img-upload flex-col">
-                    <p>Upload Image</p>
-                    <input onChange={(e) => setImage(e.target.files[0])} type="file" id="image" required hidden />
-                    <label htmlFor="image">
-                        <div className="upload-box" style={{border: "1px dashed #ccc", width: "120px", height: "80px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer"}}>
-                            {image ? "Image Selected" : "Click to Upload"}
-                        </div>
+        <div style={{ width: "100%", maxWidth: "600px", backgroundColor: "white", padding: "30px", borderRadius: "8px", boxShadow: "0px 4px 15px rgba(0,0,0,0.05)", color: "#555555" }}>
+            <h3 style={{ marginBottom: "25px", color: "#333", fontWeight: "600" }}>Add New Food Product</h3>
+            
+            <form onSubmit={onSubmitHandler} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+                
+                {/* Image Section */}
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                    <span style={{ fontSize: "14px", fontWeight: "500" }}>Upload Product Image</span>
+                    <label htmlFor="image" style={{ cursor: 'pointer', width: "max-content" }}>
+                        <img 
+                            src={image ? URL.createObjectURL(image) : "https://placehold.co/120x120?text=📸+Click+To+Upload"} 
+                            alt="preview" 
+                            style={{ width: "120px", height: "120px", objectFit: "cover", borderRadius: "6px", border: "2px dashed #ff4321" }}
+                        />
                     </label>
+                    <input onChange={(e) => setImage(e.target.files[0])} type="file" id="image" hidden required />
                 </div>
-                <div className="add-product-name flex-col">
-                    <p>Product Name</p>
-                    <input onChange={onChangeHandler} value={data.name} type="text" name='name' placeholder='Type here...' required />
+
+                {/* Name */}
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                    <span style={{ fontSize: "14px", fontWeight: "500" }}>Product Name</span>
+                    <input onChange={onChangeHandler} value={data.name} type="text" name='name' placeholder='Type item name here' required 
+                           style={{ padding: "10px", borderRadius: "4px", border: "1px solid #ccc", outline: "none" }}/>
                 </div>
-                <div className="add-product-desc flex-col">
-                    <p>Product Description</p>
-                    <textarea onChange={onChangeHandler} value={data.description} name="description" rows="6" placeholder='Write content here...' required></textarea>
+
+                {/* Description */}
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                    <span style={{ fontSize: "14px", fontWeight: "500" }}>Product Description</span>
+                    <textarea onChange={onChangeHandler} value={data.description} name="description" rows="4" placeholder='Write full dish description here' required
+                              style={{ padding: "10px", borderRadius: "4px", border: "1px solid #ccc", outline: "none", resize: "none" }}></textarea>
                 </div>
-                <div className="price-category">
-                    <div className="add-category flex-col">
-                        <p>Product Category</p>
-                        <select onChange={onChangeHandler} name="category">
-                            <option value="Salad">Salad</option>
-                            <option value="Rolls">Rolls</option>
-                            <option value="Deserts">Deserts</option>
-                            <option value="Sandwich">Sandwich</option>
-                            <option value="Cake">Cake</option>
-                            <option value="Pure Veg">Pure Veg</option>
-                            <option value="Pasta">Pasta</option>
-                            <option value="Noodles">Noodles</option>
+
+                {/* Category & Price Row */}
+                <div style={{ display: 'flex', gap: '20px', width: "100%" }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "8px", flex: 1 }}>
+                        <span style={{ fontSize: "14px", fontWeight: "500" }}>Category</span>
+                        <select onChange={onChangeHandler} value={data.category} name="category" required
+                                style={{ padding: "10px", borderRadius: "4px", border: "1px solid #ccc", backgroundColor: "white" }}>
+                            <option value="Burger">Burger</option>
+                            <option value="Pizza">Pizza</option>
+                            <option value="Dessert">Dessert</option>
+                            <option value="Beverage">Beverage</option>
+                            <option value="North Indian">North Indian</option>
                         </select>
                     </div>
-                    <div className="add-price flex-col">
-                        <p>Product Price (₹)</p>
-                        <input onChange={onChangeHandler} value={data.price} type="Number" name='price' placeholder='₹20' required />
+                    
+                    <div style={{ display: "flex", flexDirection: "column", gap: "8px", flex: 1 }}>
+                        <span style={{ fontSize: "14px", fontWeight: "500" }}>Price (₹)</span>
+                        <input onChange={onChangeHandler} value={data.price} type="Number" name='price' placeholder='₹120' required 
+                               style={{ padding: "10px", borderRadius: "4px", border: "1px solid #ccc", outline: "none" }}/>
                     </div>
                 </div>
-                <button type='submit' className='add-btn'>ADD NOW</button>
+
+                <button type='submit' style={{ padding: "12px", backgroundColor: "#ff4321", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: "600", fontSize: "16px", marginTop: "10px", transition: "0.3s" }}>
+                    ADD PRODUCT
+                </button>
             </form>
         </div>
     );

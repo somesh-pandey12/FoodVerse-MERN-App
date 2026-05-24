@@ -1,121 +1,33 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import React from 'react'
+import { Routes, Route, Navigate } from 'react-router-dom'
+import Sidebar from './components/Sidebar/Sidebar'
+import Add from './pages/Add/Add'
+import Orders from './pages/Orders/Orders'
 
-function App() {
-  const [count, setCount] = useState(0)
-
+const App = () => {
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div className='admin-app' style={{ minHeight: "100vh", backgroundColor: "#f8f9fa", fontFamily: "sans-serif" }}>
+      {/* Top Navbar Header */}
+      <div className="navbar" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 4%", backgroundColor: "white", borderBottom: "1px solid #e4e4e4" }}>
+        <h2 style={{ color: "#ff4321", fontWeight: "700", margin: 0, fontSize: "24px" }}>Tomato. <span style={{ fontSize: "12px", color: "#656565", fontWeight: "500", border: "1px solid #656565", padding: "2px 6px", borderRadius: "4px", marginLeft: "5px" }}>ADMIN PANEL</span></h2>
+        <img src="https://placehold.co/40x40?text=Admin" alt="profile" style={{ width: "40px", borderRadius: "50%" }} />
+      </div>
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
+      {/* Main Dashboard Body */}
+      <div className="app-content" style={{ display: 'flex', width: "100%" }}>
+        <Sidebar />
+        <div className="page-container" style={{ flexGrow: 1, padding: '40px', backgroundColor: "#fcfcfc", minHeight: "calc(100vh - 65px)" }}>
+          <Routes>
+            {/* Default root path pe automatic /add par bhej dega */}
+            <Route path="/" element={<Navigate to="/add" />} />
+            <Route path="/add" element={<Add />} />
+            <Route path="/orders" element={<Orders />} />
+            {/* Agar user kisi galat route par jaye toh wapas /add par bhej do */}
+            <Route path="*" element={<Navigate to="/add" />} />
+          </Routes>
         </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+      </div>
+    </div>
   )
 }
 
