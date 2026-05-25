@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import Sidebar from './components/Sidebar/Sidebar'
 import Add from './pages/Add/Add'
 import Orders from './pages/Orders/Orders'
+import List from './pages/List/List'
 
 const App = () => {
   return (
@@ -24,6 +25,7 @@ const App = () => {
             <Route path="/orders" element={<Orders />} />
             {/* Agar user kisi galat route par jaye toh wapas /add par bhej do */}
             <Route path="*" element={<Navigate to="/add" />} />
+            <Route path="/list" element={<List />} />
           </Routes>
         </div>
       </div>

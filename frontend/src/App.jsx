@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { Routes, Route } from 'react-router-dom'; // <-- Routes import kiya
+import { useState } from 'react';
+import { Routes, Route } from 'react-router-dom';
+
 import Navbar from './components/Navbar/Navbar';
 import Home from './pages/Home';
 import Cart from './pages/Cart';
@@ -12,21 +13,38 @@ const App = () => {
 
   return (
     <>
-      {showLogin ? <LoginPopup setShowLogin={setShowLogin} /> : <></>}
-      
-      <div className="app-appwrapper" style={{ fontFamily: "'Outfit', sans-serif", minHeight: "100vh" }}>
+      {/* Login Popup */}
+      {showLogin ? (
+        <LoginPopup setShowLogin={setShowLogin} />
+      ) : null}
+
+      {/* Main App Wrapper */}
+      <div
+        className="app app-appwrapper"
+        style={{
+          width: '80%',
+          margin: 'auto',
+          fontFamily: "'Outfit', sans-serif",
+          minHeight: '100vh'
+        }}
+      >
+        {/* Navbar */}
         <Navbar setShowLogin={setShowLogin} />
-        
-        <div className="main-content" style={{ padding: "0px 8%" }}>
-          {}
+
+        {/* Main Content */}
+        <div
+          className="main-content"
+          style={{ padding: '0px 8%' }}
+        >
           <Routes>
             <Route path='/' element={<Home />} />
             <Route path='/cart' element={<Cart />} />
             <Route path='/order' element={<PlaceOrder />} />
           </Routes>
         </div>
-        {}
-        <Footer/>
+
+        {/* Footer */}
+        <Footer />
       </div>
     </>
   );

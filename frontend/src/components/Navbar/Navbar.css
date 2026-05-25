@@ -65,6 +65,15 @@
   right: -4px;
 }
 
+.navbar-cart-icon svg {
+    color: #495057 !important;
+    display: inline-block;
+}
+
+.cart-badge {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
 .cart-badge {
   position: absolute;
   top: -8px;
