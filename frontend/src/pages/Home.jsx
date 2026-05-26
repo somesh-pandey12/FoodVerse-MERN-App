@@ -1,8 +1,11 @@
+// File Location: frontend/src/pages/Home/Home.jsx
+
 import { useState } from "react";
 
 import Header from "../components/Header/Header";
 import ExploreMenu from "../components/ExploreMenu/ExploreMenu";
 import FoodDisplay from "../components/FoodDisplay/FoodDisplay";
+import AppDownload from '../components/AppDownload/AppDownload'
 
 const Home = () => {
 
@@ -10,45 +13,87 @@ const Home = () => {
 
     return (
 
-        <div className='home-page'>
+        <div className="home-page">
 
             {/* Header / Banner */}
             <Header />
 
             {/* Hero Section */}
-            <div className="hero bg-base-200 p-10 mb-8 rounded-xl">
+            <div
+                className="hero-section"
+                style={{
+                    background: "#fff4f2",
+                    padding: "50px 30px",
+                    margin: "30px 0px",
+                    borderRadius: "20px",
+                    textAlign: "center"
+                }}
+            >
 
-                <div className="hero-content text-center">
+                <div
+                    className="hero-content"
+                    style={{
+                        maxWidth: "700px",
+                        margin: "auto"
+                    }}
+                >
 
-                    <div className="max-w-md">
+                    <h1
+                        style={{
+                            fontSize: "48px",
+                            fontWeight: "700",
+                            color: "#ff4321",
+                            marginBottom: "20px"
+                        }}
+                    >
+                        Delicious Food
+                    </h1>
 
-                        <h1 className="text-5xl font-bold text-orange-500">
-                            Delicious Food
-                        </h1>
+                    <p
+                        style={{
+                            fontSize: "18px",
+                            color: "#555",
+                            lineHeight: "30px",
+                            marginBottom: "30px"
+                        }}
+                    >
+                        Order your favorite food from the best restaurants nearby.
+                    </p>
 
-                        <p className="py-6">
-                            Order your favorite food from the best restaurants nearby.
-                        </p>
-
-                        <button className="btn btn-primary bg-orange-500 border-none">
-                            View Menu
-                        </button>
-
-                    </div>
+                    <button
+                        style={{
+                            backgroundColor: "#ff4321",
+                            color: "white",
+                            border: "none",
+                            padding: "12px 28px",
+                            borderRadius: "50px",
+                            fontSize: "16px",
+                            fontWeight: "600",
+                            cursor: "pointer"
+                        }}
+                    >
+                        View Menu
+                    </button>
 
                 </div>
 
             </div>
 
-            {/* Categories Slider */}
-            <ExploreMenu
+            {/* Explore Menu */}
+            <div id="explore-menu">
+
+                <ExploreMenu
+                    category={category}
+                    setCategory={setCategory}
+                />
+
+            </div>
+
+            {/* Food Items */}
+            <FoodDisplay
                 category={category}
-                setCategory={setCategory}
             />
-
-            {/* Food Items Display */}
-            <FoodDisplay category={category} />
-
+            <AppDownload />   
         </div>
     );
 };

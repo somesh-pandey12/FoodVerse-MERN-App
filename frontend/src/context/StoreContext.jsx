@@ -1,76 +1,55 @@
-import { createContext, useEffect, useState } from "react";
+// File Location: frontend/src/context/StoreContext.jsx
+import React, { createContext, useState, useEffect } from "react";
 import axios from "axios";
 
 export const StoreContext = createContext(null);
 
 const StoreContextProvider = (props) => {
+    const url = "http://localhost:8000";
+    const [token, setToken] = useState(localStorage.getItem("token") || "mock-token-active");
     const [cartItems, setCartItems] = useState({});
     const [food_list, setFoodList] = useState([]);
-    const url = "http://localhost:8000"; // Fixed matching endpoint address
-    const [token, setToken] = useState("");
 
-    // Fetch Food List
+    // Fallback Mock Data in case backend is offline during manual testing
+    const fallback_list = [
+        { _id: "1", name: "Premium Greek Salad", image: "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=500", price: 120, description: "Crisp cucumbers, tomatoes, festive olives, and premium feta cheese.", category: "Salad" },
+        { _id: "2", name: "Crunchy Veg Roll", image: "https://images.unsplash.com/photo-1534353436294-0dbd4bdac845?w=500", price: 100, description: "Freshly flaked flatbread wrapped around sautéed seasoned vegetables.", category: "Rolls" },
+        { _id: "3", name: "Classic Chocolate Fudge", image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=500", price: 250, description: "Gooey chocolate richness layered with velvety smooth ganache.", category: "Cake" }
+    ];
+
+    // Fetch dynamic food items list from database
     const fetchFoodList = async () => {
         try {
-            const response = await axios.get(url + "/api/food/list");
-            if (response.data && response.data.data) {
+            const response = await axios.get(`${url}/api/food/list`);
+            if (response.data.success && response.data.data.length > 0) {
                 setFoodList(response.data.data);
+            } else {
+                setFoodList(fallback_list);
             }
         } catch (error) {
-            console.error("Context Error fetching food list:", error.message);
+            console.log("⚠️ Backend offline, loading Swiggy premium fallback layout.");
+            setFoodList(fallback_list);
         }
     };
 
-    // Add to Cart Function
-    const addToCart = async (itemId) => {
-        setCartItems((prev) => ({
-            ...prev,
-            [itemId]: (prev[itemId] || 0) + 1
-        }));
-
-        // Backend Sync
-        if (token) {
-            try {
-                await axios.post(
-                    `${url}/api/cart/add`,
-                    { itemId },
-                    { headers: { token } }
-                );
-            } catch (error) {
-                console.error("Context Error adding to cart backend:", error.message);
-            }
-        }
+    const addToCart = (itemId) => {
+        setCartItems((prev) => ({ ...prev, [itemId]: (prev[itemId] || 0) + 1 }));
     };
 
-    // Remove from Cart Function
-    const removeFromCart = async (itemId) => {
-        setCartItems((prev) => ({
-            ...prev,
-            [itemId]: prev[itemId] - 1
-        }));
-
-        // Backend Sync
-        if (token) {
-            try {
-                await axios.post(
-                    `${url}/api/cart/remove`,
-                    { itemId },
-                    { headers: { token } }
-                );
-            } catch (error) {
-                console.error("Context Error removing from cart backend:", error.message);
-            }
-        }
+    const removeFromCart = (itemId) => {
+        setCartItems((prev) => {
+            const updated = { ...prev };
+            if (updated[itemId] > 1) updated[itemId] -= 1;
+            else delete updated[itemId];
+            return updated;
+        });
     };
 
-    // Total Cart Amount
     const getTotalCartAmount = () => {
         let totalAmount = 0;
         for (const item in cartItems) {
             if (cartItems[item] > 0) {
-                let itemInfo = food_list.find(
-                    (product) => product._id === item
-                );
+                let itemInfo = food_list.find((product) => product._id === item);
                 if (itemInfo) {
                     totalAmount += itemInfo.price * cartItems[item];
                 }
@@ -79,44 +58,8 @@ const StoreContextProvider = (props) => {
         return totalAmount;
     };
 
-    // Total Cart Items Count
-    const getTotalCartItems = () => {
-        let totalItems = 0;
-        for (const item in cartItems) {
-            if (cartItems[item] > 0) {
-                totalItems += cartItems[item];
-            }
-        }
-        return totalItems;
-    };
-
-    // Load Cart Data from Backend
-    const loadCartData = async (savedToken) => {
-        try {
-            const response = await axios.post(
-                `${url}/api/cart/get`,
-                {},
-                { headers: { token: savedToken } }
-            );
-            if (response.data && response.data.cartData) {
-                setCartItems(response.data.cartData);
-            }
-        } catch (error) {
-            console.error("Context Error loading cart data:", error.message);
-        }
-    };
-
-    // Auto Load Data on Refresh
     useEffect(() => {
-        async function loadData() {
-            await fetchFoodList();
-            const savedToken = localStorage.getItem("token");
-            if (savedToken) {
-                setToken(savedToken);
-                await loadCartData(savedToken);
-            }
-        }
-        loadData();
+        fetchFoodList();
     }, []);
 
     const contextValue = {
@@ -126,7 +69,6 @@ const StoreContextProvider = (props) => {
         addToCart,
         removeFromCart,
         getTotalCartAmount,
-        getTotalCartItems,
         url,
         token,
         setToken

@@ -3,7 +3,6 @@ import React from "react";
 const { useContext, useEffect, useState } = React;
 import { StoreContext } from '../../context/StoreContext';
 import axios from 'axios';
-import './MyOrders.css';
 
 const MyOrders = () => {
     const { url, token } = useContext(StoreContext);
@@ -12,7 +11,7 @@ const MyOrders = () => {
     const fetchOrders = async () => {
         const response = await axios.post(url + "/api/order/userorders", {}, { headers: { token } });
         if (response.data.success) {
-            setOrders(response.data.data.reverse()); // Latest orders top par dikhane ke liye reverse kiya
+            setOrders(response.data.data.reverse());
         }
     };
 
@@ -29,7 +28,7 @@ const MyOrders = () => {
                 {orders.map((order, index) => {
                     return (
                         <div key={index} className='my-orders-order'>
-                            {/* Ek box ya parcel icon handle karne ke liye text ya emoji */}
+                            {}
                             <span className="order-icon">📦</span>
                             <p>
                                 {order.items.map((item, idx) => {

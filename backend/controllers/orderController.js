@@ -1,9 +1,12 @@
+// File Location: backend/controllers/orderController.js
+
 import orderModel from "../models/orderModel.js";
 import userModel from "../models/userModel.js";
 import Stripe from "stripe";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
+// Place Order
 const placeOrder = async (req, res) => {
     const frontend_url = process.env.FRONTEND_URL;
 
@@ -12,47 +15,52 @@ const placeOrder = async (req, res) => {
             userId: req.body.userId,
             items: req.body.items,
             amount: req.body.amount,
-            address: req.body.address,
+            address: req.body.address
         });
 
         await newOrder.save();
 
+        // Clear user cart after order
         await userModel.findByIdAndUpdate(req.body.userId, {
-            cartData: {},
+            cartData: {}
         });
 
+        // Stripe Line Items
         const line_items = req.body.items.map((item) => ({
             price_data: {
                 currency: "inr",
                 product_data: {
-                    name: item.name,
+                    name: item.name
                 },
-                unit_amount: item.price * 100,
+                unit_amount: item.price * 100
             },
-            quantity: item.quantity,
+            quantity: item.quantity
         }));
 
+        // Delivery Charges
         line_items.push({
             price_data: {
                 currency: "inr",
                 product_data: {
-                    name: "Delivery Charges",
+                    name: "Delivery Charges"
                 },
-                unit_amount: 40 * 100,
+                unit_amount: 40 * 100
             },
-            quantity: 1,
+            quantity: 1
         });
 
+        // Stripe Session
         const session = await stripe.checkout.sessions.create({
             line_items,
             mode: "payment",
             success_url: `${frontend_url}/verify?success=true&orderId=${newOrder._id}`,
-            cancel_url: `${frontend_url}/verify?success=false&orderId=${newOrder._id}`,
+            cancel_url: `${frontend_url}/verify?success=false&orderId=${newOrder._id}`
         });
 
         res.json({
             success: true,
             session_url: session.url,
+            orderId: newOrder._id
         });
 
     } catch (error) {
@@ -60,11 +68,12 @@ const placeOrder = async (req, res) => {
 
         res.json({
             success: false,
-            message: "Error placing order",
+            message: "Error placing order"
         });
     }
 };
 
+// Verify Payment
 const verifyOrder = async (req, res) => {
     const { orderId, success } = req.body;
 
@@ -72,12 +81,12 @@ const verifyOrder = async (req, res) => {
         if (success === "true") {
 
             await orderModel.findByIdAndUpdate(orderId, {
-                payment: true,
+                payment: true
             });
 
             res.json({
                 success: true,
-                message: "Paid Successfully",
+                message: "Payment Successful"
             });
 
         } else {
@@ -86,7 +95,7 @@ const verifyOrder = async (req, res) => {
 
             res.json({
                 success: false,
-                message: "Payment Failed",
+                message: "Payment Failed"
             });
         }
 
@@ -95,21 +104,21 @@ const verifyOrder = async (req, res) => {
 
         res.json({
             success: false,
-            message: "Verification Error",
+            message: "Verification Error"
         });
     }
 };
 
+// User Orders
 const userOrders = async (req, res) => {
     try {
-
         const orders = await orderModel.find({
-            userId: req.body.userId,
+            userId: req.body.userId
         });
 
         res.json({
             success: true,
-            data: orders,
+            data: orders
         });
 
     } catch (error) {
@@ -117,19 +126,19 @@ const userOrders = async (req, res) => {
 
         res.json({
             success: false,
-            message: "Error fetching user orders",
+            message: "Error fetching user orders"
         });
     }
 };
 
+// Admin Order List
 const listOrders = async (req, res) => {
     try {
-
         const orders = await orderModel.find({});
 
         res.json({
             success: true,
-            data: orders,
+            data: orders
         });
 
     } catch (error) {
@@ -137,24 +146,24 @@ const listOrders = async (req, res) => {
 
         res.json({
             success: false,
-            message: "Error fetching orders",
+            message: "Error fetching orders"
         });
     }
 };
 
+// Update Order Status
 const updateStatus = async (req, res) => {
     try {
-
         await orderModel.findByIdAndUpdate(
             req.body.orderId,
             {
-                status: req.body.status,
+                status: req.body.status
             }
         );
 
         res.json({
             success: true,
-            message: "Status Updated",
+            message: "Status Updated"
         });
 
     } catch (error) {
@@ -162,7 +171,7 @@ const updateStatus = async (req, res) => {
 
         res.json({
             success: false,
-            message: "Error updating status",
+            message: "Error updating status"
         });
     }
 };
@@ -172,5 +181,5 @@ export {
     verifyOrder,
     userOrders,
     listOrders,
-    updateStatus,
+    updateStatus
 };

@@ -1,133 +1,130 @@
-import React from "react";
 
-const { useState, useEffect } = React;
-
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 
-const Orders = ({ url }) => {
-
+const Orders = () => {
     const [orders, setOrders] = useState([]);
 
+    // Backend URL
+    const url = "http://localhost:8000";
+
+    // Fetch All Orders
     const fetchAllOrders = async () => {
-
-        const response = await axios.get(
-            url + "/api/order/list"
-        );
-
-        if (response.data.success) {
-
-            setOrders(
-                response.data.data.reverse()
+        try {
+            const response = await axios.get(
+                url + "/api/order/list"
             );
+
+            if (response.data.success) {
+                setOrders(
+                    response.data.data.reverse()
+                );
+            }
+        } catch (error) {
+            console.log("Error fetching orders:", error);
         }
     };
-
+    // Update Order Status
     const statusHandler = async (
         event,
         orderId
     ) => {
+        try {
+            const response = await axios.post(
+                url + "/api/order/status",
+                {
+                    orderId,
+                    status: event.target.value
+                }
+            );
 
-        const response = await axios.post(
-            url + "/api/order/status",
-            {
-                orderId,
-                status: event.target.value
+            if (response.data.success) {
+                await fetchAllOrders();
             }
-        );
-
-        if (response.data.success) {
-
-            await fetchAllOrders();
+        } catch (error) {
+            console.log("Error updating status:", error);
         }
     };
 
     useEffect(() => {
-
         fetchAllOrders();
-
     }, []);
 
     return (
+        <div className="order-page p-6 w-full">
 
-        <div className='order-management-panel'>
+            <h2 className="text-2xl font-bold mb-2">
+                Orders Management
+            </h2>
 
-            <h2>Orders Management</h2>
-
-            <p style={{ color: "#555" }}>
-                Yahan saare orders real-time display honge.
+            <p className="text-gray-600 mb-6">
+                Yahan saare restaurant orders real-time display honge.
             </p>
 
-            <h3>Live Restaurant Orders Grid</h3>
-
-            <div className="order-list">
+            <div className="order-list flex flex-col gap-4">
 
                 {orders.map((order, index) => (
 
                     <div
                         key={index}
-                        className='order-item'
-                        style={{
-                            border: "1px solid #ddd",
-                            padding: "15px",
-                            marginBottom: "10px"
-                        }}
+                        className="order-item grid grid-cols-1 md:grid-cols-4 gap-4 items-center border p-4 rounded bg-gray-50 shadow-sm text-sm"
                     >
 
-                        <p className='order-item-food'>
-
-                            {order.items.map(
-                                (item, idx) => {
-
-                                    return idx ===
-                                        order.items.length - 1
-                                        ? item.name +
-                                        " x " +
-                                        item.quantity
-                                        : item.name +
-                                        " x " +
-                                        item.quantity +
-                                        ", ";
-                                }
-                            )}
-
-                        </p>
-
-                        <p className="order-item-name">
-
-                            {order.address.firstName +
-                                " " +
-                                order.address.lastName}
-
-                        </p>
-
-                        <div className="order-item-address">
-
-                            <p>
-                                {order.address.street + ","}
+                        {/* Order Items */}
+                        <div>
+                            <p className="font-bold mb-1">
+                                Items:
                             </p>
 
-                            <p>
-                                {order.address.city +
-                                    ", " +
-                                    order.address.state +
-                                    ", " +
-                                    order.address.zipcode}
-                            </p>
-
+                            {order.items.map((item, idx) => (
+                                <p key={idx}>
+                                    {item.name} x {item.quantity}
+                                </p>
+                            ))}
                         </div>
 
-                        <p className='order-item-phone'>
-                            {order.address.phone}
-                        </p>
+                        {/* Customer Address */}
+                        <div>
+                            <p className="font-bold mb-1">
+                                Delivery Address:
+                            </p>
 
-                        <p>
-                            Items: {order.items.length}
-                        </p>
+                            <p>
+                                {order.address.firstName}{" "}
+                                {order.address.lastName}
+                            </p>
 
-                        <p>
-                            Total Amount: ₹{order.amount}
-                        </p>
+                            <p>
+                                {order.address.street},{" "}
+                                {order.address.city}
+                            </p>
 
+                            <p>
+                                {order.address.state},{" "}
+                                {order.address.zipcode}
+                            </p>
+
+                            <p>
+                                Phone: {order.address.phone}
+                            </p>
+                        </div>
+
+                        {/* Amount */}
+                        <div>
+                            <p className="font-bold">
+                                Total Items:
+                            </p>
+
+                            <p>
+                                {order.items.length}
+                            </p>
+
+                            <p className="text-lg font-semibold text-green-600 mt-2">
+                                ₹{order.amount}
+                            </p>
+                        </div>
+
+                        {/* Order Status */}
                         <select
                             onChange={(event) =>
                                 statusHandler(
@@ -136,6 +133,7 @@ const Orders = ({ url }) => {
                                 )
                             }
                             value={order.status}
+                            className="border p-2 rounded bg-white font-medium"
                         >
 
                             <option value="Food Processing">
@@ -156,7 +154,6 @@ const Orders = ({ url }) => {
                 ))}
 
             </div>
-
         </div>
     );
 };

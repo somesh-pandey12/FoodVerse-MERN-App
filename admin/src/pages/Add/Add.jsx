@@ -1,14 +1,15 @@
+// File Location: admin/src/pages/Add/Add.jsx
 import React, { useState } from 'react';
 import axios from 'axios';
 
 const Add = () => {
-    const url = "http://localhost:5000";
+    const url = "http://localhost:8000"; 
     const [image, setImage] = useState(false);
     const [data, setData] = useState({
         name: "",
         description: "",
         price: "",
-        category: "Burger"
+        category: "Salad" 
     });
 
     const onChangeHandler = (event) => {
@@ -19,6 +20,11 @@ const Add = () => {
 
     const onSubmitHandler = async (event) => {
         event.preventDefault();
+        if(!image) {
+            alert("Please upload an image first!");
+            return;
+        }
+        
         const formData = new FormData();
         formData.append("name", data.name);
         formData.append("description", data.description);
@@ -29,74 +35,94 @@ const Add = () => {
         try {
             const response = await axios.post(`${url}/api/food/add`, formData);
             if (response.data.success) {
-                setData({ name: "", description: "", price: "", category: "Burger" });
+                setData({
+                    name: "",
+                    description: "",
+                    price: "",
+                    category: "Salad"
+                });
                 setImage(false);
-                alert(response.data.message);
+                alert("Food Item Added Successfully!");
             } else {
                 alert(response.data.message);
             }
         } catch (error) {
-            alert("Backend status check karo!");
+            console.error("Error adding food item:", error);
+            alert("Failed to add product.");
         }
     };
 
+    // Inline Styles object for absolute control
+    const styles = {
+        container: { padding: "40px", width: "100%", maxWidth: "600px" },
+        form: { display: "flex", flexDirection: "column", gap: "20px" },
+        inputBlock: { display: "flex", flexDirection: "column", gap: "8px" },
+        label: { fontSize: "14px", fontWeight: "600", color: "#555555", textAlign: "left" },
+        input: { width: "100%", padding: "10px", border: "1px solid #ccc", borderRadius: "4px", backgroundColor: "#fafafa" },
+        textarea: { width: "100%", padding: "10px", border: "1px solid #ccc", borderRadius: "4px", backgroundColor: "#fafafa", resize: "vertical" },
+        row: { display: "flex", gap: "20px", width: "100%" },
+        split: { display: "flex", flexDirection: "column", gap: "8px", width: "50%" },
+        uploadBox: { width: "120px", height: "120px", border: "1px dashed #777", borderRadius: "6px", display: "flex", flexDirection: "column", alignItems: "center", justifyValue: "center", justifyContent: "center", cursor: "pointer", backgroundColor: "#fafafa", overflow: "hidden" },
+        preview: { width: "100%", height: "100%", objectFit: "cover" },
+        button: { width: "140px", padding: "12px", backgroundColor: "#ff4321", color: "white", border: "none", borderRadius: "4px", fontWeight: "bold", cursor: "pointer", marginTop: "10px" }
+    };
+
     return (
-        <div style={{ width: "100%", maxWidth: "600px", backgroundColor: "white", padding: "30px", borderRadius: "8px", boxShadow: "0px 4px 15px rgba(0,0,0,0.05)", color: "#555555" }}>
-            <h3 style={{ marginBottom: "25px", color: "#333", fontWeight: "600" }}>Add New Food Product</h3>
-            
-            <form onSubmit={onSubmitHandler} style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+        <div style={styles.container}>
+            <form style={styles.form} onSubmit={onSubmitHandler}>
                 
-                {/* Image Section */}
-                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                    <span style={{ fontSize: "14px", fontWeight: "500" }}>Upload Product Image</span>
-                    <label htmlFor="image" style={{ cursor: 'pointer', width: "max-content" }}>
-                        <img 
-                            src={image ? URL.createObjectURL(image) : "https://placehold.co/120x120?text=📸+Click+To+Upload"} 
-                            alt="preview" 
-                            style={{ width: "120px", height: "120px", objectFit: "cover", borderRadius: "6px", border: "2px dashed #ff4321" }}
-                        />
+                {/* 1. Image Upload Block */}
+                <div style={styles.inputBlock}>
+                    <p style={styles.label}>Upload Image</p>
+                    <label htmlFor="image" style={styles.uploadBox}>
+                        {image ? (
+                            <img src={URL.createObjectURL(image)} alt="Preview" style={styles.preview} />
+                        ) : (
+                            <div style={{ textAlign: 'center', color: '#777', fontSize: '13px' }}>
+                                <span style={{ fontSize: '24px' }}>➕</span>
+                                <p style={{ margin: 0 }}>Choose Image</p>
+                            </div>
+                        )}
                     </label>
-                    <input onChange={(e) => setImage(e.target.files[0])} type="file" id="image" hidden required />
+                    <input onChange={(e) => setImage(e.target.files[0])} type="file" id="image" hidden />
+                </div>
+                
+                {/* 2. Product Name Block */}
+                <div style={styles.inputBlock}>
+                    <p style={styles.label}>Product Name</p>
+                    <input onChange={onChangeHandler} value={data.name} type="text" name='name' placeholder='Type here' style={styles.input} required />
                 </div>
 
-                {/* Name */}
-                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                    <span style={{ fontSize: "14px", fontWeight: "500" }}>Product Name</span>
-                    <input onChange={onChangeHandler} value={data.name} type="text" name='name' placeholder='Type item name here' required 
-                           style={{ padding: "10px", borderRadius: "4px", border: "1px solid #ccc", outline: "none" }}/>
+                {/* 3. Description Block */}
+                <div style={styles.inputBlock}>
+                    <p style={styles.label}>Product Description</p>
+                    <textarea onChange={onChangeHandler} value={data.description} name="description" rows="4" placeholder='Write content here' style={styles.textarea} required></textarea>
                 </div>
 
-                {/* Description */}
-                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                    <span style={{ fontSize: "14px", fontWeight: "500" }}>Product Description</span>
-                    <textarea onChange={onChangeHandler} value={data.description} name="description" rows="4" placeholder='Write full dish description here' required
-                              style={{ padding: "10px", borderRadius: "4px", border: "1px solid #ccc", outline: "none", resize: "none" }}></textarea>
-                </div>
-
-                {/* Category & Price Row */}
-                <div style={{ display: 'flex', gap: '20px', width: "100%" }}>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "8px", flex: 1 }}>
-                        <span style={{ fontSize: "14px", fontWeight: "500" }}>Category</span>
-                        <select onChange={onChangeHandler} value={data.category} name="category" required
-                                style={{ padding: "10px", borderRadius: "4px", border: "1px solid #ccc", backgroundColor: "white" }}>
-                            <option value="Burger">Burger</option>
-                            <option value="Pizza">Pizza</option>
-                            <option value="Dessert">Dessert</option>
-                            <option value="Beverage">Beverage</option>
-                            <option value="North Indian">North Indian</option>
+                {/* 4. Category & Price Grid Block */}
+                <div style={styles.row}>
+                    <div style={styles.split}>
+                        <p style={styles.label}>Product Category</p>
+                        <select onChange={onChangeHandler} name="category" value={data.category} style={styles.input}>
+                            <option value="Salad">Salad</option>
+                            <option value="Rolls">Rolls</option>
+                            <option value="Deserts">Deserts</option>
+                            <option value="Sandwich">Sandwich</option>
+                            <option value="Cake">Cake</option>
+                            <option value="Pure Veg">Pure Veg</option>
+                            <option value="Pasta">Pasta</option>
+                            <option value="Noodles">Noodles</option>
                         </select>
                     </div>
                     
-                    <div style={{ display: "flex", flexDirection: "column", gap: "8px", flex: 1 }}>
-                        <span style={{ fontSize: "14px", fontWeight: "500" }}>Price (₹)</span>
-                        <input onChange={onChangeHandler} value={data.price} type="Number" name='price' placeholder='₹120' required 
-                               style={{ padding: "10px", borderRadius: "4px", border: "1px solid #ccc", outline: "none" }}/>
+                    <div style={styles.split}>
+                        <p style={styles.label}>Product Price</p>
+                        <input onChange={onChangeHandler} value={data.price} type="number" name='price' placeholder='₹20' style={styles.input} required />
                     </div>
                 </div>
 
-                <button type='submit' style={{ padding: "12px", backgroundColor: "#ff4321", color: "white", border: "none", borderRadius: "4px", cursor: "pointer", fontWeight: "600", fontSize: "16px", marginTop: "10px", transition: "0.3s" }}>
-                    ADD PRODUCT
-                </button>
+                {/* 5. Submit Button */}
+                <button type='submit' style={styles.button}>ADD ITEM</button>
             </form>
         </div>
     );
