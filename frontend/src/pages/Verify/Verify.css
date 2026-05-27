@@ -1,3 +1,37 @@
+/* File Location: frontend/src/pages/Verify/Verify.css */
+
+.verify-page {
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #fcfcfc;
+}
+
+.verify-container {
+    text-align: center;
+    background: #ffffff;
+    padding: 3rem;
+    border-radius: 12px;
+    box-shadow:
+        0 4px 20px
+        rgba(0, 0, 0, 0.05);
+}
+
+.verify-container h3 {
+    font-size: 1.6rem;
+    color: #2c3e50;
+    margin-top: 1.5rem;
+    font-weight: 600;
+}
+
+.verify-container p {
+    color: #7f8c8d;
+    margin-top: 0.5rem;
+    font-size: 0.95rem;
+}
+
+/* Main Verify Screen */
 .verify-screen {
     min-height: 60vh;
     display: flex;
@@ -7,20 +41,53 @@
     gap: 20px;
 }
 
+/* Production Grade Spinner */
+.payment-spinner {
+    width: 65px;
+    height: 65px;
+    border: 5px solid #e2e8f0;
+    border-top-color: #fc8019;
+    border-radius: 50%;
+    margin: 0 auto;
+    animation:
+        rotateSpinner 1s
+        infinite linear;
+}
+
+/* Alternative Spinner */
 .spinner {
     width: 50px;
     height: 50px;
     border: 5px solid #bdbdbd;
-    border-top-color: #ff5722; /* Swiggy Orange theme */
+    border-top-color: #ff5722;
     border-radius: 50%;
-    animation: rotate 1s infinite linear;
+    animation:
+        rotate 1s
+        infinite linear;
 }
 
+/* Spinner Animation */
+@keyframes rotateSpinner {
+    from {
+        transform:
+            rotate(0deg);
+    }
+
+    to {
+        transform:
+            rotate(360deg);
+    }
+}
+
+/* Alternative Animation */
 @keyframes rotate {
     from {
-        transform: rotate(0deg);
+        transform:
+            rotate(0deg);
     }
+
     to {
-        transform: rotate(360deg);
+        transform:
+            rotate(360deg);
     }
 }

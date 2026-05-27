@@ -1,0 +1,106 @@
+/* File Location: frontend/src/pages/MyOrders/MyOrders.css */
+.my-orders {
+    margin: 50px auto;
+    max-width: 1100px;
+    padding: 0 20px;
+    min-height: 65vh;
+}
+
+.my-orders h2 {
+    color: #2c3e50;
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin-bottom: 30px;
+}
+
+.my-orders .container {
+    display: flex;
+    flex-col: gap-4;
+    flex-direction: column;
+}
+
+.my-orders-order {
+    display: grid;
+    grid-template-columns: 0.5fr 2fr 1fr 1fr 1.5fr 1fr;
+    align-items: center;
+    gap: 20px;
+    font-size: 0.9rem;
+    padding: 15px 20px;
+    color: #455a64;
+    border: 1px solid #edf2f7;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+    transition: all 0.2s ease-in-out;
+}
+
+.my-orders-order:hover {
+    border-color: #fc8019;
+    box-shadow: 0 4px 12px rgba(252, 128, 25, 0.05);
+}
+
+.my-orders-order img {
+    width: 40px;
+}
+
+.order-price-bold {
+    font-weight: 600;
+    color: #2d3748;
+}
+
+/* Dynamic Live Status Tracking Indicator Badges */
+.status-dot {
+    margin-right: 8px;
+    font-size: 1.1rem;
+    vertical-align: middle;
+}
+
+/* Color Coding based on real-world Swiggy fulfillment structures */
+.status-dot.food-processing {
+    color: #e67e22; /* Warning Orange */
+}
+
+.status-dot.out-for-delivery {
+    color: #3498db; /* Courier Blue */
+}
+
+.status-dot.delivered {
+    color: #2ecc71; /* Success Green */
+}
+
+.track-order-btn {
+    padding: 10px 0px;
+    border: none;
+    outline: none;
+    border-radius: 4px;
+    background: #fff0e6;
+    color: #fc8019;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.track-order-btn:hover {
+    background: #fc8019;
+    color: #ffffff;
+}
+
+.my-orders-loading {
+    text-align: center;
+    padding: 100px 0;
+}
+
+.no-orders-msg {
+    text-align: center;
+    color: #a0aec0;
+    font-size: 1.1rem;
+    margin-top: 50px;
+}
+
+@media (max-width: 900px) {
+    .my-orders-order {
+        grid-template-columns: 1fr 2fr 1fr;
+        row-gap: 15px;
+        font-size: 0.85rem;
+    }
+}

@@ -4,117 +4,239 @@ import orderModel from "../models/orderModel.js";
 import userModel from "../models/userModel.js";
 import Stripe from "stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+const stripe = new Stripe(
+    process.env.STRIPE_SECRET_KEY
+);
 
-// Place Order
-const placeOrder = async (req, res) => {
-    const frontend_url = process.env.FRONTEND_URL;
+const placeOrder = async (
+    req,
+    res
+) => {
 
     try {
-        const newOrder = new orderModel({
-            userId: req.body.userId,
-            items: req.body.items,
-            amount: req.body.amount,
-            address: req.body.address
-        });
+
+        const {
+            userId,
+            items,
+            amount,
+            address
+        } = req.body;
+
+        const frontend_url =
+            process.env.CLIENT_URL ||
+            "http://localhost:5173";
+
+        if (
+            !items ||
+            items.length === 0
+        ) {
+
+            return res.status(400).json({
+                success: false,
+                message:
+                    "Cart is empty"
+            });
+        }
+
+        const newOrder =
+            new orderModel({
+                userId,
+                items,
+                amount,
+                address,
+                payment: false,
+                status:
+                    "Food Processing"
+            });
 
         await newOrder.save();
 
-        // Clear user cart after order
-        await userModel.findByIdAndUpdate(req.body.userId, {
-            cartData: {}
-        });
+        await userModel.findByIdAndUpdate(
+            userId,
+            {
+                cartData: {}
+            }
+        );
 
-        // Stripe Line Items
-        const line_items = req.body.items.map((item) => ({
-            price_data: {
-                currency: "inr",
-                product_data: {
-                    name: item.name
+        const line_items =
+            items.map((item) => ({
+                price_data: {
+                    currency: "inr",
+
+                    product_data: {
+                        name:
+                            item.name
+                    },
+
+                    unit_amount:
+                        item.price * 100
                 },
-                unit_amount: item.price * 100
-            },
-            quantity: item.quantity
-        }));
 
-        // Delivery Charges
+                quantity:
+                    item.quantity
+            }));
+
         line_items.push({
             price_data: {
                 currency: "inr",
+
                 product_data: {
-                    name: "Delivery Charges"
+                    name:
+                        "Delivery Charges"
                 },
-                unit_amount: 40 * 100
+
+                unit_amount:
+                    40 * 100
             },
+
             quantity: 1
         });
 
-        // Stripe Session
-        const session = await stripe.checkout.sessions.create({
-            line_items,
-            mode: "payment",
-            success_url: `${frontend_url}/verify?success=true&orderId=${newOrder._id}`,
-            cancel_url: `${frontend_url}/verify?success=false&orderId=${newOrder._id}`
-        });
+        const session =
+            await stripe.checkout.sessions.create({
+                line_items,
 
-        res.json({
+                mode: "payment",
+
+                success_url:
+                    `${frontend_url}/verify?success=true&orderId=${newOrder._id}`,
+
+                cancel_url:
+                    `${frontend_url}/verify?success=false&orderId=${newOrder._id}`
+            });
+
+        res.status(200).json({
             success: true,
-            session_url: session.url,
-            orderId: newOrder._id
+            session_url:
+                session.url,
+
+            orderId:
+                newOrder._id
         });
 
     } catch (error) {
+
         console.log(error);
 
-        res.json({
+        res.status(500).json({
             success: false,
-            message: "Error placing order"
+            message:
+                "Error placing order"
         });
     }
 };
 
-// Verify Payment
-const verifyOrder = async (req, res) => {
-    const { orderId, success } = req.body;
+const verifyOrder = async (
+    req,
+    res
+) => {
+
+    const {
+        orderId,
+        success
+    } = req.body;
 
     try {
-        if (success === "true") {
 
-            await orderModel.findByIdAndUpdate(orderId, {
-                payment: true
+        if (
+            !orderId ||
+            !success
+        ) {
+
+            return res.status(400).json({
+                success: false,
+                message:
+                    "Missing credentials"
             });
+        }
+
+        if (
+            success === "true"
+        ) {
+
+            await orderModel.findByIdAndUpdate(
+                orderId,
+                {
+                    payment: true
+                }
+            );
 
             res.json({
                 success: true,
-                message: "Payment Successful"
+                message:
+                    "Payment Successful"
             });
 
         } else {
 
-            await orderModel.findByIdAndDelete(orderId);
+            await orderModel.findByIdAndDelete(
+                orderId
+            );
 
             res.json({
                 success: false,
-                message: "Payment Failed"
+                message:
+                    "Payment Failed"
             });
         }
 
     } catch (error) {
+
         console.log(error);
 
-        res.json({
+        res.status(500).json({
             success: false,
-            message: "Verification Error"
+            message:
+                "Verification Error"
         });
     }
 };
 
 // User Orders
-const userOrders = async (req, res) => {
+const userOrders = async (
+    req,
+    res
+) => {
+
     try {
-        const orders = await orderModel.find({
-            userId: req.body.userId
+
+        const orders =
+            await orderModel.find({
+                userId:
+                    req.body.userId
+            }).sort({
+                createdAt: -1
+            });
+
+        res.status(200).json({
+            success: true,
+            data: orders
         });
+
+    } catch (error) {
+
+        console.error(
+            "❌ User Orders Fetch Error:",
+            error.message
+        );
+
+        res.status(500).json({
+            success: false,
+            message:
+                "Internal server error retrieving order history."
+        });
+    }
+};
+
+const listOrders = async (
+    req,
+    res
+) => {
+
+    try {
+
+        const orders =
+            await orderModel.find({});
 
         res.json({
             success: true,
@@ -122,56 +244,46 @@ const userOrders = async (req, res) => {
         });
 
     } catch (error) {
+
         console.log(error);
 
         res.json({
             success: false,
-            message: "Error fetching user orders"
+            message:
+                "Error fetching orders"
         });
     }
 };
 
-// Admin Order List
-const listOrders = async (req, res) => {
+const updateStatus = async (
+    req,
+    res
+) => {
+
     try {
-        const orders = await orderModel.find({});
 
-        res.json({
-            success: true,
-            data: orders
-        });
-
-    } catch (error) {
-        console.log(error);
-
-        res.json({
-            success: false,
-            message: "Error fetching orders"
-        });
-    }
-};
-
-// Update Order Status
-const updateStatus = async (req, res) => {
-    try {
         await orderModel.findByIdAndUpdate(
             req.body.orderId,
             {
-                status: req.body.status
+                status:
+                    req.body.status
             }
         );
 
         res.json({
             success: true,
-            message: "Status Updated"
+            message:
+                "Status Updated"
         });
 
     } catch (error) {
+
         console.log(error);
 
         res.json({
             success: false,
-            message: "Error updating status"
+            message:
+                "Error updating status"
         });
     }
 };

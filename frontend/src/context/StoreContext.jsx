@@ -5,10 +5,17 @@ import axios from "axios";
 export const StoreContext = createContext(null);
 
 const StoreContextProvider = (props) => {
+    // 1. Maintain consistent architecture base configuration
     const url = "http://localhost:8000";
-    const [token, setToken] = useState(localStorage.getItem("token") || "mock-token-active");
+    
+    // UI state states — token is now a simple boolean tracking active sessions
+    const [token, setToken] = useState(false);
+    const [user, setUser] = useState(null); 
     const [cartItems, setCartItems] = useState({});
     const [food_list, setFoodList] = useState([]);
+
+    // Global Axios Flag: Forces browser to include cookies automatically with cross-origin requests
+    axios.defaults.withCredentials = true;
 
     // Fallback Mock Data in case backend is offline during manual testing
     const fallback_list = [
@@ -17,7 +24,7 @@ const StoreContextProvider = (props) => {
         { _id: "3", name: "Classic Chocolate Fudge", image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=500", price: 250, description: "Gooey chocolate richness layered with velvety smooth ganache.", category: "Cake" }
     ];
 
-    // Fetch dynamic food items list from database
+    // 2. Fetch dynamic food items list from database
     const fetchFoodList = async () => {
         try {
             const response = await axios.get(`${url}/api/food/list`);
@@ -32,17 +39,63 @@ const StoreContextProvider = (props) => {
         }
     };
 
-    const addToCart = (itemId) => {
-        setCartItems((prev) => ({ ...prev, [itemId]: (prev[itemId] || 0) + 1 }));
+    // 3. Handshake Session Validation Routine (Resume-Grade Authentication Verification)
+    // Instead of trusting stateful local client text strings, we ping the backend server
+    const checkUserAuth = async () => {
+        try {
+            const response = await axios.get(`${url}/api/user/me`);
+            if (response.data.success) {
+                setToken(true);
+                setUser(response.data.user);
+                
+                // Automatically populate database cart state if saved data exists
+                if (response.data.user.cartData) {
+                    setCartItems(response.data.user.cartData);
+                }
+            } else {
+                clearAuthSession();
+            }
+        } catch (error) {
+            // Safe fallback loop if server returns 401/500/offline status
+            clearAuthSession();
+        }
     };
 
-    const removeFromCart = (itemId) => {
+    const clearAuthSession = () => {
+        setToken(false);
+        setUser(null);
+    };
+
+    // 4. Enhanced Database-Synced Cart Operations
+    const addToCart = async (itemId) => {
+        // Optimistic UI update: change client state instantly for smooth responsiveness
+        setCartItems((prev) => ({ ...prev, [itemId]: (prev[itemId] || 0) + 1 }));
+
+        // If authenticated via cookie, securely stream mutation to database endpoint
+        if (token) {
+            try {
+                await axios.post(`${url}/api/cart/add`, { itemId });
+            } catch (error) {
+                console.error("❌ Failed to synchronize cart item addition with server:", error);
+            }
+        }
+    };
+
+    const removeFromCart = async (itemId) => {
         setCartItems((prev) => {
             const updated = { ...prev };
             if (updated[itemId] > 1) updated[itemId] -= 1;
             else delete updated[itemId];
             return updated;
         });
+
+        if (token) {
+            try {
+                await axios.post(`${url}/api/cart/remove`, { itemId });
+            } catch (error) {
+                console.error("❌ Failed to synchronize cart item removal with server:", error);
+            }
+        }
     };
 
     const getTotalCartAmount = () => {
@@ -58,9 +111,14 @@ const StoreContextProvider = (props) => {
         return totalAmount;
     };
 
+    // 5. App Initialization Setup Lifecycle
     useEffect(() => {
-        fetchFoodList();
-    }, []);
+        const initializeAppState = async () => {
+            await fetchFoodList();
+            await checkUserAuth();
+        };
+        initializeAppState();
+    }, [token]); // Re-triggers verification on active login action steps
 
     const contextValue = {
         food_list,
@@ -71,7 +129,9 @@ const StoreContextProvider = (props) => {
         getTotalCartAmount,
         url,
         token,
-        setToken
+        setToken,
+        user,
+        setUser
     };
 
     return (

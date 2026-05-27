@@ -1,120 +1,179 @@
+// File Location: backend/controllers/userController.js
+
 import userModel from "../models/userModel.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import validator from "validator";
 
-// ================= CREATE TOKEN =================
+// 🔑 Function to create JWT Token cleanly utilizing environment variables
 const createToken = (id) => {
-    return jwt.sign({ id }, process.env.JWT_SECRET, {
-        expiresIn: "7d",
-    });
+    return jwt.sign(
+        { id },
+        process.env.JWT_SECRET || "SUPER_SECRET_KEY_JWT_2026", // Fallback only if env is missing
+        { expiresIn: "7d" }
+    );
 };
 
-// ================= REGISTER USER =================
-const registerUser = async (req, res) => {
-    try {
-        const { name, email, password } = req.body;
+// 🍪 Helper Function to Send Token in Secure Cookie Space
+const sendTokenResponse = (user, statusCode, res) => {
+    // Generate Token
+    const token = createToken(user._id);
 
-        // Check if user already exists
+    // Cookie Options optimized for modern browser cross-origin constraints
+    const cookieOptions = {
+        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days lifecycle
+        httpOnly: true, // Safeguards against XSS scripting token access
+        secure: process.env.NODE_ENV === "production", // Set to true only on active live HTTPS servers
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax"
+    };
+
+    // Remove password string from memory context before JSON transmission
+    const userResponse = user.toObject();
+    delete userResponse.password;
+
+    // Send Cookie + Unified JSON response payload
+    res.status(statusCode)
+        .cookie("token", token, cookieOptions)
+        .json({
+            success: true,
+            message: "Authentication successful",
+            user: userResponse
+        });
+};
+
+// 🔐 1. Login User
+const loginUser = async (req, res) => {
+    const { email, password } = req.body;
+
+    try {
+        const user = await userModel.findOne({ email });
+
+        if (!user) {
+            // 404 Not Found is appropriate when the account registry returns empty
+            return res.status(404).json({
+                success: false,
+                message: "User doesn't exist"
+            });
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password);
+
+        if (!isMatch) {
+            // 400 Bad Request or 401 Unauthorized prevents false-positive credential entries
+            return res.status(400).json({
+                success: false,
+                message: "Invalid credentials"
+            });
+        }
+
+        // ✅ Send JWT inside secure HttpOnly Cookie container
+        sendTokenResponse(user, 200, res);
+
+    } catch (error) {
+        console.error("❌ Login Controller Error:", error);
+        res.status(500).json({
+            success: false,
+            message: "Server Error"
+        });
+    }
+};
+
+// 📝 2. Register User
+const registerUser = async (req, res) => {
+    const { name, email, password } = req.body;
+
+    try {
+        // Check Existing User registry logs
         const exists = await userModel.findOne({ email });
 
         if (exists) {
-            return res.json({
+            return res.status(400).json({
                 success: false,
-                message: "User already exists",
+                message: "User already exists"
             });
         }
 
-        // Validate email
+        // Validate Email structure safety rules
         if (!validator.isEmail(email)) {
-            return res.json({
+            return res.status(400).json({
                 success: false,
-                message: "Please enter a valid email",
+                message: "Please enter a valid email address"
             });
         }
 
-        // Validate password
-        if (!password || password.length < 8) {
-            return res.json({
+        // Validate Password length standards
+        if (password.length < 6) {
+            return res.status(400).json({
                 success: false,
-                message: "Please enter a strong password (min 8 chars)",
+                message: "Please enter a strong password (minimum 6 characters)"
             });
         }
 
-        // Hash password
+        // Hash Password strings with 10 cryptographic rounds
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        // Create new user
+        // Instantiating record rows inside MongoDB Atlas engine
         const newUser = new userModel({
             name,
             email,
-            password: hashedPassword,
+            password: hashedPassword
         });
 
         const user = await newUser.save();
 
-        // Generate token
-        const token = createToken(user._id);
-
-        res.json({
-            success: true,
-            token,
-            message: "User registered successfully",
-        });
+        // ✅ Issue secure identity context keys directly using cookies
+        sendTokenResponse(user, 201, res);
 
     } catch (error) {
-        console.error(error);
-
-        res.json({
+        console.error("❌ Registration Controller Error:", error);
+        res.status(500).json({
             success: false,
-            message: "Error registering user",
+            message: "Server Error"
         });
     }
 };
 
-// ================= LOGIN USER =================
-const loginUser = async (req, res) => {
+// 🚪 3. Logout User
+const logoutUser = async (req, res) => {
+    // Invalidate the active cookie parameter mapping immediately
+    res.cookie("token", "none", {
+        expires: new Date(Date.now() + 5 * 1000), // expires immediately within 5 seconds
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax"
+    });
+
+    res.status(200).json({
+        success: true,
+        message: "Logged out successfully"
+    });
+};
+
+// 🔍 4. Active Profile Handshake (Crucial Sync Layer for StoreContext)
+// Verifies incoming validation checkpoints generated by the UI startup pipeline
+const getUserProfile = async (req, res) => {
     try {
-        const { email, password } = req.body;
-
-        // Check if user exists
-        const user = await userModel.findOne({ email });
-
+        // req.body.userId arrives safely verified out of authMiddleware layers
+        const user = await userModel.findById(req.body.userId).select("-password");
+        
         if (!user) {
-            return res.json({
-                success: false,
-                message: "User doesn't exist",
-            });
+            return res.status(404).json({ success: false, message: "User profile context not found" });
         }
 
-        // Compare password
-        const isMatch = await bcrypt.compare(password, user.password);
-
-        if (!isMatch) {
-            return res.json({
-                success: false,
-                message: "Invalid credentials",
-            });
-        }
-
-        // Generate token
-        const token = createToken(user._id);
-
-        res.json({
+        res.status(200).json({
             success: true,
-            token,
-            message: "Login successful",
+            user
         });
-
     } catch (error) {
-        console.error(error);
-
-        res.json({
-            success: false,
-            message: "Error logging in",
-        });
+        console.error("❌ Profile Retrieval Engine Error:", error);
+        res.status(500).json({ success: false, message: "Server error resolving user profiles" });
     }
 };
 
-export { registerUser, loginUser };
+export {
+    loginUser,
+    registerUser,
+    logoutUser,
+    getUserProfile
+};

@@ -1,294 +1,449 @@
-// File Location: frontend/src/components/LoginPopup/LoginPopup.jsx
+import React, {
+    useState,
+    useContext
+} from "react";
 
-import { useState, useContext } from "react";
 import "./LoginPopup.css";
-import { StoreContext } from "../../context/StoreContext";
+
 import axios from "axios";
 
-const LoginPopup = ({ setShowLogin }) => {
+import { assets }
+    from "../../assets/assets.js";
 
-    const { url, setToken } = useContext(StoreContext);
+import { StoreContext }
+    from "../../context/StoreContext";
 
-    const [currState, setCurrState] = useState("Login");
+const LoginPopup = ({
+    setShowLogin
+}) => {
 
-    const [data, setData] = useState({
+    const {
+        url,
+        setToken,
+        setUser
+    } = useContext(
+        StoreContext
+    );
+
+    const [
+        currState,
+        setCurrState
+    ] = useState("Login");
+
+    const [
+        data,
+        setData
+    ] = useState({
         name: "",
         email: "",
         password: ""
     });
 
-    // Input Change Handler
-    const onChangeHandler = (event) => {
-        const name = event.target.name;
-        const value = event.target.value;
+    const [
+        errorMessage,
+        setErrorMessage
+    ] = useState("");
 
-        setData((prevData) => ({
-            ...prevData,
+    // 🔄 Input Change Handler
+    const onChangeHandler = (
+        event
+    ) => {
+
+        const name =
+            event.target.name;
+
+        const value =
+            event.target.value;
+
+        setData((data) => ({
+            ...data,
             [name]: value
         }));
     };
 
-    // Login / Register Handler
-    const onLogin = async (event) => {
+    // 🔐 Login/Register Handler
+    const onLogin = async (
+        event
+    ) => {
+
         event.preventDefault();
 
+        setErrorMessage("");
+
+        // Dynamic Route
         let newUrl = url;
 
-        if (currState === "Login") {
-            newUrl += "/api/user/login";
+        if (
+            currState === "Login"
+        ) {
+
+            newUrl +=
+                "/api/user/login";
+
         } else {
-            newUrl += "/api/user/register";
+
+            newUrl +=
+                "/api/user/register";
         }
 
         try {
-            const response = await axios.post(
-                newUrl,
-                data
-            );
 
-            if (response.data.success) {
-
-                setToken(response.data.token);
-
-                localStorage.setItem(
-                    "token",
-                    response.data.token
+            // ✅ Important:
+            // withCredentials for cookies
+            const response =
+                await axios.post(
+                    newUrl,
+                    data,
+                    {
+                        withCredentials:
+                            true
+                    }
                 );
 
-                setShowLogin(false);
+            if (
+                response.data.success
+            ) {
 
-                alert(`${currState} Successful!`);
+                // ✅ Mark User Logged In
+                setToken(true);
+
+                // ✅ Store User Data
+                if (
+                    response.data.user
+                ) {
+
+                    setUser(
+                        response.data.user
+                    );
+                }
+
+                // ✅ Close Popup
+                setShowLogin(false);
 
             } else {
 
-                alert(response.data.message);
+                setErrorMessage(
+                    response.data.message
+                );
             }
 
         } catch (error) {
 
-            console.error("Auth Error:", error);
+            const message =
+                error.response
+                    ?.data?.message ||
+                "Something went wrong. Please try again.";
 
-            alert("Authentication failed! Server check karo.");
+            setErrorMessage(
+                message
+            );
+
+            console.error(
+                "Authentication Error:",
+                error
+            );
+        }
+    };
+
+    // 🎨 Swiggy Style UI
+    const styles = {
+
+        overlay: {
+            position: "fixed",
+            zIndex: 999,
+            width: "100%",
+            height: "100%",
+            backgroundColor:
+                "#00000090",
+            display: "grid"
+        },
+
+        container: {
+            placeSelf: "center",
+            width:
+                "max(23vw, 330px)",
+            color: "#808080",
+            backgroundColor:
+                "white",
+            display: "flex",
+            flexDirection:
+                "column",
+            gap: "25px",
+            padding:
+                "25px 30px",
+            borderRadius: "8px",
+            fontSize: "14px",
+            fontFamily:
+                "Outfit, sans-serif",
+            boxShadow:
+                "0px 0px 20px rgba(0,0,0,0.2)"
+        },
+
+        title: {
+            display: "flex",
+            justifyContent:
+                "space-between",
+            alignItems:
+                "center",
+            color: "black",
+            fontSize: "20px",
+            fontWeight: "bold"
+        },
+
+        close: {
+            cursor: "pointer",
+            width: "16px"
+        },
+
+        inputs: {
+            display: "flex",
+            flexDirection:
+                "column",
+            gap: "20px"
+        },
+
+        inputField: {
+            border:
+                "1px solid #c9c9c9",
+            outline: "none",
+            padding: "10px",
+            borderRadius: "4px",
+            fontSize: "15px"
+        },
+
+        btn: {
+            border: "none",
+            padding: "12px",
+            borderRadius: "4px",
+            color: "white",
+            backgroundColor:
+                "#ff4321",
+            fontSize: "15px",
+            cursor: "pointer",
+            fontWeight: "500"
+        },
+
+        error: {
+            color: "red",
+            fontSize: "12px",
+            margin: "0"
+        },
+
+        switch: {
+            cursor: "pointer",
+            color: "#ff4321",
+            fontWeight: "500"
+        },
+
+        condition: {
+            display: "flex",
+            alignItems: "start",
+            gap: "8px",
+            marginTop: "-15px"
         }
     };
 
     return (
 
-        <div
-            className="login-popup"
-            style={{
-                position: "fixed",
-                zIndex: 1000,
-                width: "100%",
-                height: "100%",
-                backgroundColor: "#00000090",
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                top: 0,
-                left: 0
-            }}
-        >
+        <div style={styles.overlay}>
 
             <form
                 onSubmit={onLogin}
-                className="login-popup-container"
-                style={{
-                    width: "max(23vw, 330px)",
-                    color: "#808080",
-                    backgroundColor: "white",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: "25px",
-                    padding: "25px 30px",
-                    borderRadius: "8px",
-                    fontSize: "14px",
-                    boxShadow: "0px 4px 15px rgba(0,0,0,0.2)"
-                }}
+                style={styles.container}
             >
 
-                {/* Popup Title */}
+                {/* Header */}
                 <div
-                    className="login-popup-title"
-                    style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        color: "black"
-                    }}
+                    style={styles.title}
                 >
 
-                    <h2
-                        style={{
-                            fontWeight: "600",
-                            fontSize: "20px",
-                            margin: 0
-                        }}
-                    >
+                    <h2>
                         {currState}
                     </h2>
 
-                    <span
-                        onClick={() => setShowLogin(false)}
-                        style={{
-                            cursor: "pointer",
-                            fontSize: "22px",
-                            fontWeight: "bold",
-                            color: "#ff4321"
-                        }}
-                    >
-                        ×
-                    </span>
+                    <img
+                        onClick={() =>
+                            setShowLogin(false)
+                        }
 
+                        src={
+                            assets.cross_icon
+                        }
+
+                        alt="close"
+
+                        style={styles.close}
+                    />
                 </div>
 
-                {/* Input Fields */}
+                {/* Error Message */}
+                {errorMessage && (
+
+                    <p style={styles.error}>
+                        {errorMessage}
+                    </p>
+                )}
+
+                {/* Inputs */}
                 <div
-                    className="login-popup-inputs"
-                    style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "20px"
-                    }}
+                    style={styles.inputs}
                 >
 
-                    {currState === "Login" ? null : (
+                    {currState ===
+                    "Login"
+                        ? null
+                        : (
 
                         <input
                             name="name"
-                            type="text"
-                            placeholder="Your name"
-                            value={data.name}
-                            onChange={onChangeHandler}
-                            required
-                            style={{
-                                outline: "none",
-                                border: "1px solid #c9c9c9",
-                                padding: "10px",
-                                borderRadius: "4px"
-                            }}
-                        />
 
+                            onChange={
+                                onChangeHandler
+                            }
+
+                            value={
+                                data.name
+                            }
+
+                            type="text"
+
+                            placeholder="Your name"
+
+                            required
+
+                            style={
+                                styles.inputField
+                            }
+                        />
                     )}
 
                     <input
                         name="email"
+
+                        onChange={
+                            onChangeHandler
+                        }
+
+                        value={
+                            data.email
+                        }
+
                         type="email"
+
                         placeholder="Your email"
-                        value={data.email}
-                        onChange={onChangeHandler}
+
                         required
-                        style={{
-                            outline: "none",
-                            border: "1px solid #c9c9c9",
-                            padding: "10px",
-                            borderRadius: "4px"
-                        }}
+
+                        style={
+                            styles.inputField
+                        }
                     />
 
                     <input
                         name="password"
-                        type="password"
-                        placeholder="Password"
-                        value={data.password}
-                        onChange={onChangeHandler}
-                        required
-                        style={{
-                            outline: "none",
-                            border: "1px solid #c9c9c9",
-                            padding: "10px",
-                            borderRadius: "4px"
-                        }}
-                    />
 
+                        onChange={
+                            onChangeHandler
+                        }
+
+                        value={
+                            data.password
+                        }
+
+                        type="password"
+
+                        placeholder="Password"
+
+                        required
+
+                        style={
+                            styles.inputField
+                        }
+                    />
                 </div>
 
-                {/* Submit Button */}
+                {/* Button */}
                 <button
                     type="submit"
-                    style={{
-                        border: "none",
-                        padding: "12px",
-                        borderRadius: "4px",
-                        color: "white",
-                        backgroundColor: "#ff4321",
-                        fontSize: "15px",
-                        cursor: "pointer",
-                        fontWeight: "500"
-                    }}
+                    style={styles.btn}
                 >
 
-                    {currState === "Sign Up"
+                    {currState ===
+                    "Sign Up"
                         ? "Create account"
                         : "Login"}
-
                 </button>
 
-                {/* Terms & Conditions */}
+                {/* Terms */}
                 <div
-                    className="login-popup-condition"
-                    style={{
-                        display: "flex",
-                        alignItems: "start",
-                        gap: "8px",
-                        marginTop: "-15px"
-                    }}
+                    style={styles.condition}
                 >
 
                     <input
                         type="checkbox"
                         required
-                        style={{
-                            marginTop: "3px"
-                        }}
                     />
 
-                    <p style={{ margin: 0 }}>
-                        By continuing, I agree to the
-                        terms of use & privacy policy.
+                    <p>
+                        By continuing,
+                        I agree to the
+                        terms of use &
+                        privacy policy.
                     </p>
-
                 </div>
+                <div className="login-popup-title">
+    <h2>Login</h2>
+    {}
+    <span onClick={() => setShowLogin(false)} style={{ cursor: 'pointer', fontSize: '25px', fontWeight: '500' }}>
+        &times;
+    </span>
+</div>
 
-                {/* Switch Login / Signup */}
-                {currState === "Login" ? (
+                {/* Switch Login/Register */}
+                {currState ===
+                "Login" ? (
 
-                    <p style={{ margin: 0 }}>
-                        Create a new account?{" "}
+                    <p>
+                        Create a new
+                        account?{" "}
 
                         <span
                             onClick={() =>
-                                setCurrState("Sign Up")
+                                setCurrState(
+                                    "Sign Up"
+                                )
                             }
-                            style={{
-                                color: "#ff4321",
-                                fontWeight: "500",
-                                cursor: "pointer"
-                            }}
+
+                            style={
+                                styles.switch
+                            }
                         >
+
                             Click here
                         </span>
                     </p>
 
                 ) : (
 
-                    <p style={{ margin: 0 }}>
-                        Already have an account?{" "}
+                    <p>
+                        Already have
+                        an account?{" "}
 
                         <span
                             onClick={() =>
-                                setCurrState("Login")
+                                setCurrState(
+                                    "Login"
+                                )
                             }
-                            style={{
-                                color: "#ff4321",
-                                fontWeight: "500",
-                                cursor: "pointer"
-                            }}
+
+                            style={
+                                styles.switch
+                            }
                         >
+
                             Login here
                         </span>
                     </p>
-
                 )}
 
             </form>

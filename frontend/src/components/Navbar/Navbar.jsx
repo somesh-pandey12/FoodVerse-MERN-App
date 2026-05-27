@@ -1,348 +1,116 @@
 // File Location: frontend/src/components/Navbar/Navbar.jsx
-
-import { useState, useContext } from "react";
-import "./Navbar.css";
-
-import { Link, useNavigate } from "react-router-dom";
-
+import React, { useState, useContext } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { StoreContext } from "../../context/StoreContext";
 
 const Navbar = ({ setShowLogin }) => {
-
-    const [menu, setMenu] = useState("Home");
-
-    const {
-        cartItems,
-        token,
-        setToken
-    } = useContext(StoreContext);
-
+    const [menu, setMenu] = useState("home");
+    const [dropdownOpen, setDropdownOpen] = useState(false);
+    
+    const { token, setToken, getTotalCartAmount } = useContext(StoreContext);
     const navigate = useNavigate();
+    const location = useLocation();
 
-    const getTotalCartItemsCount = () => {
-
-        let totalItems = 0;
-
-        for (const item in cartItems) {
-
-            if (cartItems[item] > 0) {
-                totalItems += cartItems[item];
-            }
-        }
-
-        return totalItems;
+    // Session Termination Handler
+    const logout = () => {
+        localStorage.removeItem("token");
+        setToken("");
+        setDropdownOpen(false);
+        navigate("/");
     };
 
-    const logout = () => {
+    // Smooth Scrolling & Route Navigation Interceptor
+    const handleNavigation = (targetId, menuName) => {
+        setMenu(menuName);
+        if (location.pathname !== "/") {
+            navigate("/");
+            setTimeout(() => {
+                const element = document.getElementById(targetId);
+                if (element) element.scrollIntoView({ behavior: "smooth" });
+            }, 100);
+        } else {
+            const element = document.getElementById(targetId);
+            if (element) element.scrollIntoView({ behavior: "smooth" });
+        }
+    };
 
-        localStorage.removeItem("token");
-
-        setToken("");
-
-        navigate("/");
-
-        alert("Logged Out Successfully");
+    // Corporate Inline UI Stylesheet
+    const styles = {
+        navbar: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "15px 8%", backgroundColor: "#ffffff", boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.06)", sticky: "top", zIndex: 100, position: "sticky", top: 0 },
+        logo: { fontSize: "28px", fontWeight: "800", color: "#fc8019", cursor: "pointer", letterSpacing: "-0.5px", margin: 0 },
+        menuList: { display: "flex", listStyle: "none", gap: "30px", color: "#3d4152", fontWeight: "500", fontSize: "15px", cursor: "pointer" },
+        activeItem: { paddingBottom: "2px", borderBottom: "3px solid #fc8019", color: "#fc8019" },
+        rightContainer: { display: "flex", alignItems: "center", gap: "35px" },
+        cartWrapper: { position: "relative", cursor: "pointer", fontSize: "22px", display: "flex", alignItems: "center" },
+        cartBadge: { position: "absolute", top: "-8px", right: "-10px", backgroundColor: "#fc8019", color: "white", fontSize: "11px", borderRadius: "50%", padding: "2px 6px", fontWeight: "600" },
+        signInBtn: { backgroundColor: "transparent", border: "1px solid #3d4152", padding: "9px 22px", borderRadius: "4px", fontSize: "14px", fontWeight: "600", color: "#3d4152", cursor: "pointer", transition: "0.2s" },
+        profileMenuWrapper: { position: "relative" },
+        avatarBtn: { backgroundColor: "#f2f2f2", border: "none", width: "40px", height: "40px", borderRadius: "50%", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px", fontWeight: "bold", color: "#3d4152" },
+        dropdown: { position: "absolute", right: 0, top: "45px", backgroundColor: "white", boxShadow: "0px 4px 15px rgba(0,0,0,0.15)", borderRadius: "6px", width: "150px", display: "flex", flexDirection: "column", overflow: "hidden", zIndex: 200 },
+        dropdownItem: { padding: "12px 16px", fontSize: "14px", color: "#3d4152", cursor: "pointer", borderBottom: "1px solid #f2f2f2", transition: "0.2s", display: "flex", gap: "8px" }
     };
 
     return (
+        <div style={styles.navbar}>
+            {/* Brand Logo Node */}
+            <h1 onClick={() => { navigate("/"); setMenu("home"); }} style={styles.logo}>
+                Tomato<span style={{ color: "#3d4152" }}>.</span>
+            </h1>
 
-        <div
-            className="navbar-container"
-            style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                padding: "20px 4%",
-                backgroundColor: "white",
-                boxShadow: "0 2px 10px rgba(0,0,0,0.05)"
-            }}
-        >
-
-            <Link
-                to="/"
-                className="navbar-logo"
-                onClick={() => setMenu("Home")}
-                style={{
-                    textDecoration: "none",
-                    fontSize: "30px",
-                    fontWeight: "700",
-                    color: "#ff4321"
-                }}
-            >
-
-                Tomato
-                <span style={{ color: "#495057" }}>
-                    .
-                </span>
-
-            </Link>
-
-            <ul
-                className="navbar-menu"
-                style={{
-                    display: "flex",
-                    listStyle: "none",
-                    gap: "20px",
-                    margin: 0,
-                    padding: 0,
-                    fontSize: "16px",
-                    color: "#495057",
-                    fontWeight: "500",
-                    cursor: "pointer"
-                }}
-            >
-
-                <Link
-                    to="/"
-                    onClick={() => setMenu("Home")}
-                    style={{
-                        textDecoration: "none",
-                        color:
-                            menu === "Home"
-                                ? "#ff4321"
-                                : "inherit",
-                        borderBottom:
-                            menu === "Home"
-                                ? "2px solid #ff4321"
-                                : "none",
-                        paddingBottom: "2px"
-                    }}
-                >
-                    Home
-                </Link>
-
-                <li
-                    onClick={() => setMenu("Menu")}
-                    style={{
-                        color:
-                            menu === "Menu"
-                                ? "#ff4321"
-                                : "inherit",
-                        borderBottom:
-                            menu === "Menu"
-                                ? "2px solid #ff4321"
-                                : "none",
-                        paddingBottom: "2px"
-                    }}
-                >
-                    Menu
-                </li>
-
-                <li
-                    onClick={() =>
-                        setMenu("Mobile App")
-                    }
-                    style={{
-                        color:
-                            menu === "Mobile App"
-                                ? "#ff4321"
-                                : "inherit",
-                        borderBottom:
-                            menu === "Mobile App"
-                                ? "2px solid #ff4321"
-                                : "none",
-                        paddingBottom: "2px"
-                    }}
-                >
-                    Mobile App
-                </li>
-
-                <li
-                    onClick={() =>
-                        setMenu("Contact Us")
-                    }
-                    style={{
-                        color:
-                            menu === "Contact Us"
-                                ? "#ff4321"
-                                : "inherit",
-                        borderBottom:
-                            menu === "Contact Us"
-                                ? "2px solid #ff4321"
-                                : "none",
-                        paddingBottom: "2px"
-                    }}
-                >
-                    Contact Us
-                </li>
-
+            {/* Middle Nav Matrix */}
+            <ul style={styles.menuList}>
+                <li onClick={() => { navigate("/"); setMenu("home"); window.scrollTo({ top: 0, behavior: "smooth" }); }} style={menu === "home" ? styles.activeItem : {}}>Home</li>
+                <li onClick={() => handleNavigation("explore-menu", "menu")} style={menu === "menu" ? styles.activeItem : {}}>Menu</li>
+                <li onClick={() => handleNavigation("app-download", "mobile-app")} style={menu === "mobile-app" ? styles.activeItem : {}}>Mobile App</li>
+                <li onClick={() => handleNavigation("footer", "contact-us")} style={menu === "contact-us" ? styles.activeItem : {}}>Contact Us</li>
             </ul>
 
-            <div
-                className="navbar-right"
-                style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "25px"
-                }}
-            >
-
-                <input
-                    type="text"
-                    placeholder="Search food..."
-                    onChange={(e) =>
-                        console.log(
-                            "Searching for:",
-                            e.target.value
-                        )
-                    }
-                    style={{
-                        border: "1px solid #ccc",
-                        padding: "5px 10px",
-                        borderRadius: "20px",
-                        fontSize: "12px",
-                        outline: "none"
-                    }}
-                />
-
-                <Link
-                    to="/cart"
-                    className="navbar-cart-icon"
-                    style={{
-                        position: "relative",
-                        display: "flex",
-                        alignItems: "center",
-                        cursor: "pointer",
-                        textDecoration: "none"
-                    }}
-                >
-
-                    <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="24"
-                        height="24"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="#495057"
-                        strokeWidth="2"
-                    >
-
-                        <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
-                        />
-
-                    </svg>
-
-                    {getTotalCartItemsCount() > 0 && (
-
-                        <div
-                            className="cart-badge"
-                            style={{
-                                position: "absolute",
-                                top: "-10px",
-                                right: "-10px",
-                                backgroundColor: "#ff4321",
-                                color: "white",
-                                fontSize: "11px",
-                                width: "18px",
-                                height: "18px",
-                                borderRadius: "50%",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                fontWeight: "bold"
-                            }}
-                        >
-
-                            {getTotalCartItemsCount()}
-
-                        </div>
-
+            {/* Operational Utilities Container */}
+            <div style={styles.rightContainer}>
+                {/* Dynamic Cart Icon Link */}
+                <div onClick={() => navigate("/cart")} style={styles.cartWrapper}>
+                    🛍️
+                    {getTotalCartAmount() > 0 && (
+                        <div style={styles.cartBadge}>!</div>
                     )}
+                </div>
 
-                </Link>
-
+                {/* Verification Controlled Authentication Cluster */}
                 {!token ? (
-
-                    <button
-                        className="navbar-button"
-                        onClick={() =>
-                            setShowLogin(true)
-                        }
-                        style={{
-                            backgroundColor:
-                                "transparent",
-                            color: "#495057",
-                            fontSize: "16px",
-                            border:
-                                "1px solid #ff4321",
-                            padding: "8px 25px",
-                            borderRadius: "50px",
-                            cursor: "pointer",
-                            transition: "0.3s",
-                            fontWeight: "500"
-                        }}
-                    >
-
+                    <button onClick={() => setShowLogin(true)} style={styles.signInBtn}>
                         Sign In
-
                     </button>
-
                 ) : (
-
-                    <div
-                        className="navbar-profile"
-                        style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "15px"
-                        }}
-                    >
-
-                        <button
-                            onClick={() =>
-                                navigate("/myorders")
-                            }
-                            style={{
-                                padding: "8px 14px",
-                                border:
-                                    "1px solid #ddd",
-                                backgroundColor:
-                                    "white",
-                                borderRadius: "6px",
-                                cursor: "pointer",
-                                fontWeight: "500"
-                            }}
+                    <div style={styles.profileMenuWrapper}>
+                        {/* User Dynamic Profile Avatar */}
+                        <button 
+                            onClick={() => setDropdownOpen(!dropdownOpen)} 
+                            style={styles.avatarBtn}
+                            onBlur={() => setTimeout(() => setDropdownOpen(false), 200)}
                         >
-                            📦 My Orders
+                            👤
                         </button>
 
-                        <img
-                            src="https://placehold.co/35x35?text=U"
-                            alt="profile"
-                            style={{
-                                width: "35px",
-                                borderRadius: "50%"
-                            }}
-                        />
-
-                        <button
-                            onClick={logout}
-                            style={{
-                                padding: "6px 12px",
-                                backgroundColor:
-                                    "#ff4321",
-                                color: "white",
-                                border: "none",
-                                borderRadius: "4px",
-                                cursor: "pointer",
-                                fontSize: "12px",
-                                fontWeight: "600"
-                            }}
-                        >
-
-                            Logout
-
-                        </button>
-
+                        {/* Professional Account Dropdown List */}
+                        {dropdownOpen && (
+                            <div style={styles.dropdown}>
+                                <div 
+                                    style={styles.dropdownItem} 
+                                    onMouseDown={() => navigate("/myorders")}
+                                >
+                                    📦 Orders
+                                </div>
+                                <div 
+                                    style={{ ...styles.dropdownItem, color: "red", borderBottom: "none" }} 
+                                    onMouseDown={logout}
+                                >
+                                    🚪 Logout
+                                </div>
+                            </div>
+                        )}
                     </div>
-
                 )}
-
             </div>
-
         </div>
     );
 };

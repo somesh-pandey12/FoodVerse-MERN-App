@@ -1,25 +1,50 @@
+// File Location: backend/routes/orderRoute.js
+
 import express from "express";
 
-import authMiddleware from "../middleware/auth.js";
+import authMiddleware
+    from "../middleware/auth.js";
 
 import {
     placeOrder,
     verifyOrder,
     userOrders,
     listOrders,
-    updateStatus,
+    updateStatus
 } from "../controllers/orderController.js";
 
-const orderRouter = express.Router();
+const orderRouter =
+    express.Router();
 
-orderRouter.post("/place", authMiddleware, placeOrder);
+// Protected Order Routes
+orderRouter.post(
+    "/place",
+    authMiddleware,
+    placeOrder
+);
 
-orderRouter.post("/verify", verifyOrder);
+// 🛡️ Protected User Orders Route
+orderRouter.post(
+    "/userorders",
+    authMiddleware,
+    userOrders
+);
 
-orderRouter.post("/userorders", authMiddleware, userOrders);
+// Public Verification Route
+orderRouter.post(
+    "/verify",
+    verifyOrder
+);
 
-orderRouter.get("/list", listOrders);
+// Admin Routes
+orderRouter.get(
+    "/list",
+    listOrders
+);
 
-orderRouter.post("/status", updateStatus);
+orderRouter.post(
+    "/status",
+    updateStatus
+);
 
 export default orderRouter;

@@ -1,4 +1,7 @@
+// File Location: backend/routes/foodRoute.js
+
 import express from "express";
+
 import {
     addFood,
     listFood,
@@ -7,11 +10,29 @@ import {
 
 import multer from "multer";
 
-const foodRouter = express.Router();
+import authMiddleware
+    from "../middleware/auth.js";
 
-const storage = multer.diskStorage({
-    destination: "uploads",
-    filename: (req, file, cb) => {
+import adminMiddleware
+    from "../middleware/adminMiddleware.js";
+
+const foodRouter =
+    express.Router();
+
+// Multer Storage Configuration
+const storage =
+    multer.diskStorage({
+
+    destination:
+        "uploads",
+
+    filename:
+        (
+            req,
+            file,
+            cb
+        ) => {
+
         return cb(
             null,
             `${Date.now()}_${file.originalname}`
@@ -19,23 +40,30 @@ const storage = multer.diskStorage({
     }
 });
 
-const upload = multer({
-    storage: storage
-});
+const upload =
+    multer({
+        storage: storage
+    });
 
-foodRouter.post(
-    "/add",
-    upload.single("image"),
-    addFood
-);
-
+// Public Route
 foodRouter.get(
     "/list",
     listFood
 );
 
+// Protected Admin Routes
+foodRouter.post(
+    "/add",
+    authMiddleware,
+    adminMiddleware,
+    upload.single("image"),
+    addFood
+);
+
 foodRouter.post(
     "/remove",
+    authMiddleware,
+    adminMiddleware,
     removeFood
 );
 

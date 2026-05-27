@@ -1,53 +1,79 @@
-// File Location: frontend/src/pages/Verify/Verify.jsx
-
-import React from "react";
-
-const { useContext, useEffect } = React;
-
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { StoreContext } from "../../context/StoreContext";
-
-import axios from "axios";
+import React, {
+    useContext,
+    useEffect
+} from "react";
 
 import "./Verify.css";
 
+import {
+    useNavigate,
+    useSearchParams
+} from "react-router-dom";
+
+import {
+    StoreContext
+} from "../../context/StoreContext";
+
+import axios from "axios";
+
 const Verify = () => {
 
-    const [searchParams] = useSearchParams();
+    // Get URL Query Params
+    const [searchParams] =
+        useSearchParams();
 
-    const success = searchParams.get("success");
-    const orderId = searchParams.get("orderId");
+    const success =
+        searchParams.get(
+            "success"
+        );
 
-    const { url } = useContext(StoreContext);
+    const orderId =
+        searchParams.get(
+            "orderId"
+        );
 
-    const navigate = useNavigate();
+    const { url } =
+        useContext(
+            StoreContext
+        );
+
+    const navigate =
+        useNavigate();
 
     // Verify Stripe Payment
-    const verifyPayment = async () => {
+    const verifyPayment =
+        async () => {
 
         try {
 
-            const response = await axios.post(
-                url + "/api/order/verify",
-                {
-                    success,
-                    orderId
-                }
-            );
+            const response =
+                await axios.post(
+                    `${url}/api/order/verify`,
+                    {
+                        success,
+                        orderId
+                    }
+                );
 
-            if (response.data.success) {
+            if (
+                response.data.success
+            ) {
 
-                navigate("/myorders");
+                // Payment Success
+                navigate(
+                    "/myorders"
+                );
 
             } else {
 
+                // Payment Failed
                 navigate("/");
             }
 
         } catch (error) {
 
             console.error(
-                "Payment Verification Error:",
+                "❌ Payment Verification Error:",
                 error
             );
 
@@ -55,47 +81,76 @@ const Verify = () => {
         }
     };
 
+    // Auto Verify On Page Load
     useEffect(() => {
 
-        verifyPayment();
+        if (
+            orderId &&
+            success
+        ) {
 
-    }, []);
+            verifyPayment();
+
+        } else {
+
+            navigate("/");
+        }
+
+    }, [success, orderId]);
 
     return (
 
         <div
-            className="verify-screen"
+            className="verify-page"
             style={{
                 minHeight: "70vh",
                 display: "flex",
-                flexDirection: "column",
-                justifyContent: "center",
-                alignItems: "center",
+                flexDirection:
+                    "column",
+                justifyContent:
+                    "center",
+                alignItems:
+                    "center",
                 gap: "20px"
             }}
         >
 
             {/* Loading Spinner */}
             <div
-                className="spinner"
+                className="payment-spinner"
                 style={{
                     width: "90px",
                     height: "90px",
-                    border: "6px solid #d9d9d9",
-                    borderTopColor: "#ff4321",
-                    borderRadius: "50%",
-                    animation: "rotate 1s linear infinite"
+                    border:
+                        "6px solid #d9d9d9",
+                    borderTopColor:
+                        "#ff4321",
+                    borderRadius:
+                        "50%",
+                    animation:
+                        "rotate 1s linear infinite"
                 }}
             ></div>
 
-            <p
+            <h3
                 style={{
-                    fontSize: "16px",
-                    fontWeight: "500",
-                    color: "#555"
+                    fontSize: "22px",
+                    fontWeight: "600",
+                    color: "#222"
                 }}
             >
-                Verifying your payment, please do not close the window...
+                Verifying your transaction...
+            </h3>
+
+            <p
+                style={{
+                    fontSize: "15px",
+                    color: "#666"
+                }}
+            >
+                Please do not close
+                this window or click
+                the back button.
             </p>
 
             {/* Spinner Animation */}

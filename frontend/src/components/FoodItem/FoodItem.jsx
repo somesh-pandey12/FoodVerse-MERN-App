@@ -18,57 +18,62 @@ const FoodItem = ({
         url
     } = useContext(StoreContext);
 
+    const imageUrl = image?.startsWith("http")
+        ? image
+        : `${url}/images/${image}`;
+
     return (
 
         <div
-            className='food-item'
+            className="food-item"
             style={{
                 width: "100%",
-                margin: "auto",
-                borderRadius: "15px",
-                boxShadow: "0px 0px 10px #00000015",
-                transition: "0.3s",
-                backgroundColor: "white",
-                overflow: "hidden"
+                backgroundColor: "#ffffff",
+                borderRadius: "18px",
+                overflow: "hidden",
+                boxShadow: "0 4px 15px rgba(0,0,0,0.08)",
+                transition: "all 0.3s ease"
             }}
         >
 
             <div
                 className="food-item-img-container"
-                style={{ position: "relative" }}
+                style={{
+                    position: "relative"
+                }}
             >
 
                 <img
-                    className='food-item-image'
-                    src={url + "/images/" + image}
+                    className="food-item-image"
+                    src={imageUrl}
                     alt={name}
                     style={{
                         width: "100%",
-                        height: "200px",
-                        objectFit: "cover"
+                        height: "220px",
+                        objectFit: "cover",
+                        display: "block"
                     }}
                 />
 
                 {!cartItems[id] ? (
 
                     <button
-                        className='add-btn'
                         onClick={() => addToCart(id)}
+                        className="add-btn"
                         style={{
                             position: "absolute",
                             bottom: "15px",
                             right: "15px",
-                            width: "35px",
-                            height: "35px",
+                            width: "42px",
+                            height: "42px",
                             borderRadius: "50%",
-                            backgroundColor: "white",
                             border: "none",
-                            cursor: "pointer",
-                            fontWeight: "bold",
-                            fontSize: "18px",
+                            backgroundColor: "#ffffff",
                             color: "#ff4321",
-                            boxShadow:
-                                "0px 2px 5px rgba(0,0,0,0.2)"
+                            fontSize: "24px",
+                            fontWeight: "600",
+                            cursor: "pointer",
+                            boxShadow: "0 3px 10px rgba(0,0,0,0.2)"
                         }}
                     >
                         +
@@ -77,59 +82,61 @@ const FoodItem = ({
                 ) : (
 
                     <div
-                        className='food-item-counter'
+                        className="food-item-counter"
                         style={{
                             position: "absolute",
                             bottom: "15px",
                             right: "15px",
                             display: "flex",
                             alignItems: "center",
-                            gap: "10px",
-                            padding: "6px",
+                            gap: "12px",
+                            padding: "8px 12px",
+                            backgroundColor: "#ffffff",
                             borderRadius: "50px",
-                            backgroundColor: "white",
-                            boxShadow:
-                                "0px 2px 5px rgba(0,0,0,0.2)"
+                            boxShadow: "0 3px 10px rgba(0,0,0,0.2)"
                         }}
                     >
 
                         <button
-                            className='counter-minus'
                             onClick={() => removeFromCart(id)}
                             style={{
-                                width: "25px",
-                                height: "25px",
+                                width: "28px",
+                                height: "28px",
                                 borderRadius: "50%",
                                 border: "none",
-                                backgroundColor: "#ffe8e4",
+                                backgroundColor: "#ffe5e0",
                                 color: "#ff4321",
-                                cursor: "pointer",
-                                fontWeight: "bold"
+                                fontSize: "18px",
+                                fontWeight: "700",
+                                cursor: "pointer"
                             }}
                         >
-                            -
+                            −
                         </button>
 
                         <span
                             style={{
-                                fontWeight: "500"
+                                fontSize: "16px",
+                                fontWeight: "600",
+                                minWidth: "18px",
+                                textAlign: "center"
                             }}
                         >
                             {cartItems[id]}
                         </span>
 
                         <button
-                            className='counter-plus'
                             onClick={() => addToCart(id)}
                             style={{
-                                width: "25px",
-                                height: "25px",
+                                width: "28px",
+                                height: "28px",
                                 borderRadius: "50%",
                                 border: "none",
                                 backgroundColor: "#ff4321",
-                                color: "white",
-                                cursor: "pointer",
-                                fontWeight: "bold"
+                                color: "#ffffff",
+                                fontSize: "18px",
+                                fontWeight: "700",
+                                cursor: "pointer"
                             }}
                         >
                             +
@@ -143,7 +150,9 @@ const FoodItem = ({
 
             <div
                 className="food-item-info"
-                style={{ padding: "20px" }}
+                style={{
+                    padding: "18px"
+                }}
             >
 
                 <div
@@ -156,21 +165,25 @@ const FoodItem = ({
                     }}
                 >
 
-                    <p
+                    <h3
                         style={{
-                            fontWeight: "600",
-                            fontSize: "18px",
-                            margin: 0
+                            margin: 0,
+                            fontSize: "20px",
+                            fontWeight: "700",
+                            color: "#2c2c2c"
                         }}
                     >
                         {name}
-                    </p>
+                    </h3>
 
                     <span
-                        className="stars"
                         style={{
+                            backgroundColor: "#fff3ed",
                             color: "#ff4321",
-                            fontWeight: "bold"
+                            padding: "4px 10px",
+                            borderRadius: "20px",
+                            fontSize: "13px",
+                            fontWeight: "600"
                         }}
                     >
                         ⭐ 4.5
@@ -181,26 +194,47 @@ const FoodItem = ({
                 <p
                     className="food-item-desc"
                     style={{
-                        color: "#676767",
-                        fontSize: "12px",
-                        minHeight: "36px",
-                        margin: "0 0 10px 0"
+                        fontSize: "14px",
+                        color: "#6b7280",
+                        lineHeight: "1.5",
+                        minHeight: "42px",
+                        marginBottom: "15px"
                     }}
                 >
                     {description}
                 </p>
 
-                <p
-                    className="food-item-price"
+                <div
                     style={{
-                        color: "#ff4321",
-                        fontSize: "20px",
-                        fontWeight: "600",
-                        margin: 0
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center"
                     }}
                 >
-                    ₹{price}
-                </p>
+
+                    <p
+                        className="food-item-price"
+                        style={{
+                            margin: 0,
+                            fontSize: "24px",
+                            fontWeight: "700",
+                            color: "#ff4321"
+                        }}
+                    >
+                        ₹{price}
+                    </p>
+
+                    <span
+                        style={{
+                            fontSize: "13px",
+                            color: "#16a34a",
+                            fontWeight: "600"
+                        }}
+                    >
+                        Free Delivery
+                    </span>
+
+                </div>
 
             </div>
 
