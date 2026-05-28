@@ -1,27 +1,56 @@
-# Tomato - Premium Swiggy-Inspired Food Delivery Platform
+# 🍔 FoodVerse - Full Stack Food Delivery Application
 
-A modern, full-stack production-ready food ordering web application built using the **MERN architecture**. This platform replicates core enterprise features of Swiggy, including real-time dynamic menu filtering, state-managed persistent shopping cart loops, an operational administrative control panel, and cross-origin responsive databases.
+**FoodVerse** is a modern, high-performance full-stack web application designed to provide a seamless online food ordering and delivery experience. Built using the **MERN stack** (MongoDB, Express.js, React, Node.js), it features secure user authentication, real-time responsive state management, and robust online payment integration via **Razorpay**.
 
-## 🚀 Key Features
-- **Dynamic Restaurant Catalog:** Real-time synchronization between the Database and Customer view.
-- **Context-Driven State Management:** Global state execution utilizing React Context API for optimized multi-component re-renders during cart updates.
-- **Fail-Safe Fallbacks:** Adaptive interface layout which switches seamlessly to highly optimized mock buffers if database ports are busy.
-- **Admin Management Portal:** Dedicated administrative dashboard allowing operators to implement mutations (Create/Read/Delete operations) on active inventories.
-- **Responsive Fluid Layouts:** Pure CSS-in-JS component matrices rendering perfectly across mobile devices, tablets, and wide-screen desktop nodes.
+---
 
-## 🛠️ Tech Stack & Architecture
-- **Frontend Architecture:** React.js (Vite workflow environment), JavaScript (ES6+ specs), React Router DOM (Declarative Router).
-- **Global State Control:** React Context API & Hooks (`useContext`, `useState`, `useEffect`).
-- **Backend Environment:** Node.js, Express.js micro-framework ecosystem.
-- **Database Architecture:** MongoDB with programmatic modeling using Mongoose ODM pipelines.
-- **Network Interface Layer:** Axios async-await interceptor matrix.
+## 🚀 Core Features
 
-## 📦 Local Installation & Setup Instructions
+* **User Authentication:** Secure user signup and login flow powered by **JSON Web Tokens (JWT)** and encrypted passwords, with integrated session state sync.
+* **Dynamic Cart System:** Real-time incremental/decremental frontend cart states synchronized instantly with persistent backend MongoDB storage.
+* **Live Catalog Sync:** Up-to-date food item feeds fetched dynamically from the database with automated graceful UI fallbacks.
+* **Razorpay Payment Gateway:** Integrated production-ready checkout experience handling automatic payment verification and secure signatures.
+* **Responsive UI:** Clean, corporate, and minimalist navbar and interface styling customized for smooth multi-page navigation and contextual dropdowns.
 
-Ensure you have [Node.js](https://nodejs.org/) and [MongoDB](https://www.mongodb.com/) active on your host execution instance.
+---
 
-### 1. Set Up and Boot the Backend Server
-```bash
-cd backend
-npm install
-node server.js
+## 🛠️ Tech Stack
+
+### Frontend
+* **React.js** (Functional Components & Hooks)
+* **React Router DOM** (Client-side routing)
+* **Axios** (Promise-based HTTP client with cookie defaults)
+* **Tailwind CSS & DaisyUI** (Modern layout and styling components)
+* **Context API** (Global state management for auth, cart items, and live catalog stream)
+
+### Backend
+* **Node.js & Express.js** (RESTful API architecture)
+* **MongoDB & Mongoose** (NoSQL Database modeling)
+* **JSON Web Tokens (JWT)** (Secure header-driven authentication middleware)
+* **Razorpay SDK** (Financial checkout transaction processing)
+
+---
+
+## 📁 Directory Structure
+
+```text
+FoodVerse/
+├── backend/
+│   ├── config/             # DB and system configurations
+│   ├── controllers/        # Order, user, and cart routing business logic
+│   ├── middleware/         # Token-based security and protection layers
+│   ├── models/             # Mongoose schemas (User, Food, Order)
+│   └── server.js           # Express entry point
+└── frontend/
+    ├── src/
+    │   ├── components/     # Reusable global layouts (Navbar, Footer)
+    │   ├── context/        # StoreContext global state engine
+    │   ├── pages/          # Home, Cart, PlaceOrder, MyOrders screens
+    │   └── index.html      # Application DOM entry node
+
+
+PORT=8000
+MONGODB_URI=your_mongodb_connection_string
+JWT_SECRET=your_secure_jwt_secret_key
+RAZORPAY_KEY_ID=your_razorpay_key_id
+RAZORPAY_KEY_SECRET=your_razorpay_key_secret
