@@ -133,7 +133,7 @@ const removeFromCart = async (
 
             cartData[itemId] -= 1;
 
-            // Remove key if quantity becomes 0
+            // ✅ Remove key if quantity becomes 0
             if (
                 cartData[itemId] === 0
             ) {

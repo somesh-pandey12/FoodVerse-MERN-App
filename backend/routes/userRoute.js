@@ -1,15 +1,25 @@
 // File Location: backend/routes/userRoute.js
+
 import express from "express";
-import { loginUser, registerUser, logoutUser, getUserProfile } from "../controllers/userController.js";
-import authMiddleware from "../middleware/auth.js"; // Importing your security layer
+// ✅ Import statements ko bilkul matched name "getUserProfile" diya hai
+import { 
+    loginUser, 
+    registerUser, 
+    googleAuth, 
+    logoutUser, 
+    getUserProfile 
+} from "../controllers/userController.js"; 
+import authMiddleware from "../middleware/auth.js"; // Tumhari structural middleware file
 
 const userRouter = express.Router();
 
-// 🔓 Public Routes (Accessible without logging in)
+// 📬 Authentication Routes
 userRouter.post("/register", registerUser);
 userRouter.post("/login", loginUser);
+userRouter.post("/google-login", googleAuth);
 userRouter.post("/logout", logoutUser);
 
-userRouter.get("/me", authMiddleware, getUserProfile);
+// 👤 Protected Profiles Access Node 
+userRouter.get("/me", authMiddleware, getUserProfile); // Fixed hook placement here
 
 export default userRouter;

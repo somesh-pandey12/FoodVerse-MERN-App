@@ -9,6 +9,7 @@ import { fileURLToPath } from "url";
 import { connectDB } from "./config/db.js";
 import foodRouter from "./routes/foodRoute.js";
 import userRouter from "./routes/userRoute.js";
+import cartRouter from "./routes/cartRoute.js";
 
 // Config
 dotenv.config();
@@ -25,6 +26,7 @@ app.use(express.json());
 
 // ✅ Enable Cookie Parser
 app.use(cookieParser());
+app.use("/api/cart", cartRouter);
 
 // ✅ Updated CORS Configuration (Multiple Origins Allowed for Development)
 const allowedOrigins = [

@@ -13,33 +13,33 @@ export const StoreContext =
 
 const StoreContextProvider = (props) => {
 
-    // Backend Base URL
+    // 🌐 Backend Base URL
     const url =
         "http://localhost:8000";
 
-    // Authentication State
+    // 🔐 Authentication State
     const [token, setToken] =
         useState("");
 
     const [user, setUser] =
         useState(null);
 
-    // Loading State (Skeleton Loader Support)
+    // ⏳ Loading State
     const [loading, setLoading] =
         useState(true);
 
-    // Cart State
+    // 🛒 Cart State
     const [cartItems, setCartItems] =
         useState({});
 
-    // Food List State
+    // 🍔 Food List State
     const [food_list, setFoodList] =
         useState([]);
 
-    // Automatically include cookies
+    // ✅ Automatically include cookies
     axios.defaults.withCredentials = true;
 
-    // Backup Fallback Data
+    // 🧯 Fallback Demo Data
     const fallback_list = [
         {
             _id: "1",
@@ -75,7 +75,7 @@ const StoreContextProvider = (props) => {
         }
     ];
 
-    // Fetch Food List
+    // 🍔 Fetch Food List
     const fetchFoodList = async () => {
 
         try {
@@ -114,7 +114,10 @@ const StoreContextProvider = (props) => {
                 "⚠️ Backend offline, loading fallback data."
             );
 
-            console.error(error);
+            console.error(
+                "Failed executing catalog data load streams:",
+                error
+            );
 
             setFoodList(
                 fallback_list
@@ -126,7 +129,7 @@ const StoreContextProvider = (props) => {
         }
     };
 
-    // Check User Authentication
+    // 👤 Check User Authentication
     const checkUserAuth = async (
         localToken
     ) => {
@@ -144,23 +147,13 @@ const StoreContextProvider = (props) => {
                     }
                 );
 
-            if (response.data.success) {
+            if (
+                response.data.success
+            ) {
 
                 setUser(
                     response.data.user
                 );
-
-                // Load saved cart data
-                if (
-                    response.data.user
-                        .cartData
-                ) {
-
-                    setCartItems(
-                        response.data.user
-                            .cartData
-                    );
-                }
 
             } else {
 
@@ -180,30 +173,75 @@ const StoreContextProvider = (props) => {
 
                 clearAuthSession();
             }
+
+            console.error(
+                "Authentication validation failure:",
+                error
+            );
         }
     };
 
-    // Clear Auth Session
+    // 🧹 Clear User Session
     const clearAuthSession =
         () => {
 
             setToken("");
 
             setUser(null);
+
+            setCartItems({});
         };
 
-    // Add To Cart
+    // 📥 Load Persistent Cart Data
+    const loadCartData = async (
+        activeToken
+    ) => {
+
+        try {
+
+            const response =
+                await axios.get(
+                    `${url}/api/cart/get`,
+                    {
+                        headers: {
+                            token:
+                                activeToken
+                        }
+                    }
+                );
+
+            if (
+                response.data.success
+            ) {
+
+                setCartItems(
+                    response.data
+                        .cartData || {}
+                );
+            }
+
+        } catch (error) {
+
+            console.error(
+                "❌ Cart retrieval processing error:",
+                error
+            );
+        }
+    };
+
+    // 🛒 Add Item To Cart
     const addToCart = async (
         itemId
     ) => {
 
+        // ⚡ Instant UI Update
         setCartItems((prev) => ({
             ...prev,
             [itemId]:
                 (prev[itemId] || 0) + 1
         }));
 
-        // Sync with backend if logged in
+        // 🔄 Sync With Backend
         if (token) {
 
             try {
@@ -221,18 +259,19 @@ const StoreContextProvider = (props) => {
             } catch (error) {
 
                 console.error(
-                    "❌ Cart sync failed:",
+                    "❌ Database cart incremental syncing fault:",
                     error
                 );
             }
         }
     };
 
-    // Remove From Cart
+    // ❌ Remove Item From Cart
     const removeFromCart = async (
         itemId
     ) => {
 
+        // ⚡ Instant UI Update
         setCartItems((prev) => {
 
             const updated = {
@@ -253,7 +292,7 @@ const StoreContextProvider = (props) => {
             return updated;
         });
 
-        // Sync remove with backend
+        // 🔄 Sync With Backend
         if (token) {
 
             try {
@@ -271,14 +310,14 @@ const StoreContextProvider = (props) => {
             } catch (error) {
 
                 console.error(
-                    "❌ Remove sync failed:",
+                    "❌ Database cart decremental syncing fault:",
                     error
                 );
             }
         }
     };
 
-    // Calculate Total Cart Amount
+    // 💰 Calculate Total Cart Amount
     const getTotalCartAmount =
         () => {
 
@@ -308,37 +347,49 @@ const StoreContextProvider = (props) => {
             return totalAmount;
         };
 
-    // Initial App Load
+    // 🚀 Initial App Bootstrap
     const loadData = async () => {
 
         await fetchFoodList();
 
-        const localToken =
+        const persistentToken =
             localStorage.getItem(
                 "token"
             );
 
-        if (localToken) {
+        if (persistentToken) {
 
-            setToken(localToken);
+            setToken(
+                persistentToken
+            );
 
+            // 👤 Restore User Session
             await checkUserAuth(
-                localToken
+                persistentToken
+            );
+
+            // 🛒 Restore Cart
+            await loadCartData(
+                persistentToken
             );
         }
     };
 
+    // 🚀 Execute On App Start
     useEffect(() => {
 
         loadData();
 
     }, []);
 
+    // 🌍 Global Context Value
     const contextValue = {
 
+        // 🍔 Food
         food_list,
         setFoodList,
 
+        // 🛒 Cart
         cartItems,
         setCartItems,
 
@@ -347,22 +398,28 @@ const StoreContextProvider = (props) => {
 
         getTotalCartAmount,
 
+        // 🔐 Auth
         token,
         setToken,
 
         user,
         setUser,
 
+        // ⏳ Loading
         loading,
 
+        // 🌐 Backend URL
         url
     };
 
     return (
+
         <StoreContext.Provider
             value={contextValue}
         >
+
             {props.children}
+
         </StoreContext.Provider>
     );
 };
