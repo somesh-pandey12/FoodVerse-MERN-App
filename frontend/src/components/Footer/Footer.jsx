@@ -86,7 +86,7 @@ const Footer = () => {
                 
                 {/* Left Section - Brand Info */}
                 <div style={styles.left}>
-                    <h2 style={styles.logo}>Tomato.</h2>
+                    <h2 style={styles.logo}>FoodVerse</h2>
                     <p style={styles.text}>
                         Lorem Ipsum is simply dummy text of the printing and typesetting industry. 
                         Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, 
@@ -110,7 +110,7 @@ const Footer = () => {
                     <h2 style={styles.heading}>GET IN TOUCH</h2>
                     <ul style={styles.list}>
                         <li>+1-212-456-7890</li>
-                        <li>contact@tomato.com</li>
+                        <li>contact@foodverse.com</li>
                     </ul>
                 </div>
 
@@ -120,7 +120,7 @@ const Footer = () => {
             
             {/* Copyright block */}
             <p style={styles.copyright}>
-                Copyright 2026 © Tomato.com - All Rights Reserved.
+                Copyright 2026 © FoodVerse.com - All Rights Reserved.
             </p>
         </div>
     );

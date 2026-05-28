@@ -35,7 +35,7 @@ const AppDownload = () => {
 
     return (
         <div className='app-download' id='app-download' style={styles.container}>
-            <p>For Better Experience Download <br />Tomato App</p>
+            <p>For Better Experience Download <br />FoodVerse App</p>
             <div style={styles.platforms}>
                 {/* Agar images nahi hain, toh text buttons mock downloaders ka kaam karenge */}
                 <button style={styles.badge}>🤖 Google Play</button>
