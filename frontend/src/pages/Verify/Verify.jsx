@@ -1,169 +1,43 @@
-import React, {
-    useContext,
-    useEffect
-} from "react";
-
-import "./Verify.css";
-
-import {
-    useNavigate,
-    useSearchParams
-} from "react-router-dom";
-
-import {
-    StoreContext
-} from "../../context/StoreContext";
-
-import axios from "axios";
+// File Location: frontend/src/pages/Verify/Verify.jsx
+import React, { useContext, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { StoreContext } from '../../context/StoreContext';
+import axios from 'axios';
 
 const Verify = () => {
+    const [searchParams] = useSearchParams();
+    const success = searchParams.get("success");
+    const orderId = searchParams.get("orderId");
+    
+    const { url } = useContext(StoreContext);
+    const navigate = useNavigate();
 
-    // Get URL Query Params
-    const [searchParams] =
-        useSearchParams();
-
-    const success =
-        searchParams.get(
-            "success"
-        );
-
-    const orderId =
-        searchParams.get(
-            "orderId"
-        );
-
-    const { url } =
-        useContext(
-            StoreContext
-        );
-
-    const navigate =
-        useNavigate();
-
-    // Verify Stripe Payment
-    const verifyPayment =
-        async () => {
-
+    const verifyPayment = async () => {
         try {
-
-            const response =
-                await axios.post(
-                    `${url}/api/order/verify`,
-                    {
-                        success,
-                        orderId
-                    }
-                );
-
-            if (
-                response.data.success
-            ) {
-
-                // Payment Success
-                navigate(
-                    "/myorders"
-                );
-
+            // Backend endpoint ko data pass karo payment status synchronize karne ke liye
+            const response = await axios.post(`${url}/api/order/verify`, { success, orderId });
+            if (response.data.success) {
+                navigate("/myorders");
             } else {
-
-                // Payment Failed
                 navigate("/");
             }
-
         } catch (error) {
-
-            console.error(
-                "❌ Payment Verification Error:",
-                error
-            );
-
+            console.error("Verification processing failed:", error);
             navigate("/");
         }
     };
 
-    // Auto Verify On Page Load
     useEffect(() => {
-
-        if (
-            orderId &&
-            success
-        ) {
-
-            verifyPayment();
-
-        } else {
-
-            navigate("/");
-        }
-
-    }, [success, orderId]);
+        verifyPayment();
+    }, []);
 
     return (
-
-        <div
-            className="verify-page"
-            style={{
-                minHeight: "70vh",
-                display: "flex",
-                flexDirection:
-                    "column",
-                justifyContent:
-                    "center",
-                alignItems:
-                    "center",
-                gap: "20px"
-            }}
-        >
-
-            {/* Loading Spinner */}
-            <div
-                className="payment-spinner"
-                style={{
-                    width: "90px",
-                    height: "90px",
-                    border:
-                        "6px solid #d9d9d9",
-                    borderTopColor:
-                        "#ff4321",
-                    borderRadius:
-                        "50%",
-                    animation:
-                        "rotate 1s linear infinite"
-                }}
-            ></div>
-
-            <h3
-                style={{
-                    fontSize: "22px",
-                    fontWeight: "600",
-                    color: "#222"
-                }}
-            >
-                Verifying your transaction...
-            </h3>
-
-            <p
-                style={{
-                    fontSize: "15px",
-                    color: "#666"
-                }}
-            >
-                Please do not close
-                this window or click
-                the back button.
+        <div className="verify min-h-[60vh] flex flex-col justify-center items-center gap-4">
+            {/* Premium Tailwind Pulse Loader Spinning Context Indicator */}
+            <div className="w-16 h-16 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-gray-500 font-medium tracking-wide text-sm animate-pulse">
+                Verifying your payment, please do not close or refresh this tab...
             </p>
-
-            {/* Spinner Animation */}
-            <style>
-                {`
-                    @keyframes rotate {
-                        100% {
-                            transform: rotate(360deg);
-                        }
-                    }
-                `}
-            </style>
-
         </div>
     );
 };

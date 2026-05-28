@@ -1,161 +1,123 @@
+// File Location: admin/src/pages/Orders/Orders.jsx
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import './Orders.css'; // 👈 Custom CSS file link kiye hain
 
-import React, { useState, useEffect } from "react";
-import axios from "axios";
+const Orders = ({ url }) => {
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-const Orders = () => {
-    const [orders, setOrders] = useState([]);
+  // 🚚 Fetch global user orders pipeline
+  const fetchAllOrders = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(`${url}/api/order/list`);
+      if (response.data.success) {
+        setOrders(response.data.data);
+      } else {
+        alert("Failed to extract active routing orders data.");
+      }
+    } catch (error) {
+      console.error("Orders Fetch Error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    // Backend URL
-    const url = "http://localhost:8000";
+  // 📈 Update status control toggle node
+  const statusHandler = async (event, orderId) => {
+    const updatedStatus = event.target.value;
+    try {
+      const response = await axios.post(`${url}/api/order/status`, {
+        orderId,
+        status: updatedStatus
+      });
+      if (response.data.success) {
+        await fetchAllOrders(); // Status update hote hi table refresh
+      }
+    } catch (error) {
+      console.error("Status Update Failed:", error);
+    }
+  };
 
-    // Fetch All Orders
-    const fetchAllOrders = async () => {
-        try {
-            const response = await axios.get(
-                url + "/api/order/list"
-            );
+  useEffect(() => {
+    fetchAllOrders();
+  }, []);
 
-            if (response.data.success) {
-                setOrders(
-                    response.data.data.reverse()
-                );
-            }
-        } catch (error) {
-            console.log("Error fetching orders:", error);
-        }
-    };
-    // Update Order Status
-    const statusHandler = async (
-        event,
-        orderId
-    ) => {
-        try {
-            const response = await axios.post(
-                url + "/api/order/status",
-                {
-                    orderId,
-                    status: event.target.value
-                }
-            );
+  return (
+    <div className="orders-page-container">
+      <div className="orders-page-header">
+        <h3 className="orders-title">Live Orders Hub</h3>
+        <span className="orders-counter">{orders.length} Active Workflows</span>
+      </div>
 
-            if (response.data.success) {
-                await fetchAllOrders();
-            }
-        } catch (error) {
-            console.log("Error updating status:", error);
-        }
-    };
+      {loading ? (
+        <div className="orders-loading">Loading incoming logistics streaming...</div>
+      ) : orders.length > 0 ? (
+        <div className="orders-list-wrapper">
+          {orders.map((order, idx) => (
+            <div key={order._id || idx} className="order-card-item">
+              
+              {/* Box 1: Package Icon */}
+              <div className="order-icon-box">
+                <span className="box-emoji">📦</span>
+              </div>
 
-    useEffect(() => {
-        fetchAllOrders();
-    }, []);
+              {/* Box 2: Food Items & Customer Address */}
+              <div className="order-details-box">
+                <p className="order-items-string">
+                  {order.items.map((item, index) => {
+                    if (index === order.items.length - 1) {
+                      return item.name + " x " + item.quantity;
+                    } else {
+                      return item.name + " x " + item.quantity + ", ";
+                    }
+                  })}
+                </p>
+                
+                {/* Shipping Target Block */}
+                <div className="customer-shipping-info">
+                  <p className="shipping-label">Shipping Target:</p>
+                  <p className="customer-name">{order.address.firstName + " " + order.address.lastName}</p>
+                  <p className="customer-address">
+                    {order.address.street + ", " + order.address.city + ", " + order.address.state + ", " + order.address.country}
+                  </p>
+                  <p className="customer-phone">📞 {order.address.phone}</p>
+                </div>
+              </div>
 
-    return (
-        <div className="order-page p-6 w-full">
+              {/* Box 3: Metrics & Pricing */}
+              <div className="order-metrics-box">
+                <p className="metrics-label">Metrics Data</p>
+                <p className="metrics-text">Items: <strong>{order.items.length} types</strong></p>
+                <p className="metrics-text">Net Amount: <span className="order-total-price">₹{order.amount}</span></p>
+                <p className="payment-method-tag">Method: <strong>{order.paymentType || "Online"}</strong></p>
+              </div>
 
-            <h2 className="text-2xl font-bold mb-2">
-                Orders Management
-            </h2>
-
-            <p className="text-gray-600 mb-6">
-                Yahan saare restaurant orders real-time display honge.
-            </p>
-
-            <div className="order-list flex flex-col gap-4">
-
-                {orders.map((order, index) => (
-
-                    <div
-                        key={index}
-                        className="order-item grid grid-cols-1 md:grid-cols-4 gap-4 items-center border p-4 rounded bg-gray-50 shadow-sm text-sm"
-                    >
-
-                        {/* Order Items */}
-                        <div>
-                            <p className="font-bold mb-1">
-                                Items:
-                            </p>
-
-                            {order.items.map((item, idx) => (
-                                <p key={idx}>
-                                    {item.name} x {item.quantity}
-                                </p>
-                            ))}
-                        </div>
-
-                        {/* Customer Address */}
-                        <div>
-                            <p className="font-bold mb-1">
-                                Delivery Address:
-                            </p>
-
-                            <p>
-                                {order.address.firstName}{" "}
-                                {order.address.lastName}
-                            </p>
-
-                            <p>
-                                {order.address.street},{" "}
-                                {order.address.city}
-                            </p>
-
-                            <p>
-                                {order.address.state},{" "}
-                                {order.address.zipcode}
-                            </p>
-
-                            <p>
-                                Phone: {order.address.phone}
-                            </p>
-                        </div>
-
-                        {/* Amount */}
-                        <div>
-                            <p className="font-bold">
-                                Total Items:
-                            </p>
-
-                            <p>
-                                {order.items.length}
-                            </p>
-
-                            <p className="text-lg font-semibold text-green-600 mt-2">
-                                ₹{order.amount}
-                            </p>
-                        </div>
-
-                        {/* Order Status */}
-                        <select
-                            onChange={(event) =>
-                                statusHandler(
-                                    event,
-                                    order._id
-                                )
-                            }
-                            value={order.status}
-                            className="border p-2 rounded bg-white font-medium"
-                        >
-
-                            <option value="Food Processing">
-                                Food Processing
-                            </option>
-
-                            <option value="Out for Delivery">
-                                Out for Delivery
-                            </option>
-
-                            <option value="Delivered">
-                                Delivered
-                            </option>
-
-                        </select>
-
-                    </div>
-                ))}
+              {/* Box 4: Logistics Status Dropdown Selection */}
+              <div className="order-status-box">
+                <label className="status-label">Order Stage</label>
+                <select 
+                  onChange={(e) => statusHandler(e, order._id)} 
+                  value={order.status} 
+                  className="status-select-dropdown"
+                >
+                  <option value="Food Processing">⏱️ Food Processing</option>
+                  <option value="Out for Delivery">🚀 Out for Delivery</option>
+                  <option value="Delivered">✅ Delivered</option>
+                </select>
+              </div>
 
             </div>
+          ))}
         </div>
-    );
+      ) : (
+        <div className="empty-orders-fallback">
+          <p>No user records or payment orders streaming at this hour.</p>
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default Orders;

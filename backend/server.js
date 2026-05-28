@@ -1,18 +1,18 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+dotenv.config();
+
 import mongoose from "mongoose";
 import path from "path";
 import cookieParser from "cookie-parser";
 import { fileURLToPath } from "url";
-
+import orderRouter from "./routes/orderRoute.js";
 import { connectDB } from "./config/db.js";
 import foodRouter from "./routes/foodRoute.js";
 import userRouter from "./routes/userRoute.js";
 import cartRouter from "./routes/cartRoute.js";
 
-// Config
-dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 8000;
@@ -27,6 +27,7 @@ app.use(express.json());
 // ✅ Enable Cookie Parser
 app.use(cookieParser());
 app.use("/api/cart", cartRouter);
+app.use("/api/order", orderRouter);
 
 // ✅ Updated CORS Configuration (Multiple Origins Allowed for Development)
 const allowedOrigins = [
@@ -55,12 +56,7 @@ app.use(
 connectDB();
 
 // Static Folder
-app.use(
-    "/images",
-    express.static(
-        path.join(__dirname, "uploads")
-    )
-);
+app.use("/images", express.static("uploads"));
 
 // API Routes
 app.use("/api/food", foodRouter);

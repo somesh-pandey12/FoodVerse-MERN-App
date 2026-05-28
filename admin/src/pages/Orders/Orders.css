@@ -1,0 +1,200 @@
+/* File Location: admin/src/pages/Orders/Orders.css */
+
+.orders-page-container {
+    width: 100%;
+    max-width: 950px;
+    margin: 0 auto;
+    box-sizing: border-box;
+    text-align: left;
+}
+
+.orders-page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.orders-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+}
+
+.orders-counter {
+    font-size: 12px;
+    background-color: #ffedd5;
+    color: #ea580c;
+    padding: 4px 14px;
+    border-radius: 50px;
+    font-weight: 700;
+}
+
+.orders-loading {
+    text-align: center;
+    padding: 40px 0;
+    color: #94a3b8;
+    font-size: 14px;
+}
+
+.orders-list-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+}
+
+/* 📦 Premium Responsive Grid Order Card */
+.order-card-item {
+    display: grid;
+    grid-template-columns: 0.4fr 2fr 1fr 1fr;
+    gap: 20px;
+    align-items: start;
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 20px;
+    border-radius: 16px;
+    box-sizing: border-box;
+    transition: all 0.2s ease;
+}
+
+.order-card-item:hover {
+    border-color: #cbd5e1;
+    background-color: #f1f5f9;
+}
+
+.order-icon-box {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    padding: 10px;
+    border-radius: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.box-emoji {
+    font-size: 28px;
+}
+
+.order-items-string {
+    font-size: 15px;
+    font-weight: 600;
+    color: #0f172a;
+    margin: 0 0 12px 0;
+    line-height: 1.5;
+}
+
+/* 📞 Customer Details internal container */
+.customer-shipping-info {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    padding: 12px;
+    border-radius: 12px;
+    max-width: 450px;
+}
+
+.shipping-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    margin: 0 0 4px 0;
+    letter-spacing: 0.5px;
+}
+
+.customer-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 2px 0;
+}
+
+.customer-address {
+    font-size: 12px;
+    color: #64748b;
+    margin: 0 0 6px 0;
+    line-height: 1.4;
+}
+
+.customer-phone {
+    font-size: 12px;
+    font-weight: 600;
+    color: #475569;
+    margin: 0;
+}
+
+/* 📊 Metrics column details */
+.order-metrics-box, .order-status-box {
+    display: flex;
+    flex-direction: column;
+}
+
+.metrics-label, .status-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    margin: 0 0 8px 0;
+    letter-spacing: 0.5px;
+}
+
+.metrics-text {
+    font-size: 13px;
+    color: #475569;
+    margin: 0 0 4px 0;
+}
+
+.order-total-price {
+    color: #f97316;
+    font-weight: 800;
+    font-size: 15px;
+}
+
+.payment-method-tag {
+    font-size: 11px;
+    color: #64748b;
+    margin-top: 4px;
+}
+
+/* 🎛️ Select Dropdown elements style */
+.status-select-dropdown {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+    background-color: #ffffff;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.status-select-dropdown:focus {
+    border-color: #f97316;
+    box-shadow: 0 0 0 3px #ffedd5;
+}
+
+.empty-orders-fallback {
+    text-align: center;
+    padding: 60px 0;
+    border: 2px dashed #cbd5e1;
+    border-radius: 16px;
+    background-color: #f8fafc;
+    color: #64748b;
+}
+
+/* 📱 Layout responsiveness rule for tab/mobile screens */
+@media (max-width: 768px) {
+    .order-card-item {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    .order-icon-box {
+        width: max-content;
+    }
+}
