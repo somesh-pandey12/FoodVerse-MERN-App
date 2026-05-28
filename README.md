@@ -32,7 +32,7 @@
 * **Context API** (Global state management for auth, cart items, and live catalog stream)
 * ## 🔗 Live Deployment Links
 * 
-* **Customer Web App:** [https://foodverse-frontend.vercel.app](https://your-frontend-link)
+* **Customer Web App:** [https://foodverse-frontend.vercel.app](https://https://food-verse-mern-9e7d7e4da-somesh-pandey12s-projects.vercel.app/)
 * **Admin Dashboard Portal:** [https://foodverse-admin.vercel.app](https://food-verse-mern-app-ete4-33oawblyp-somesh-pandey12s-projects.vercel.app)
 
 ### Backend
