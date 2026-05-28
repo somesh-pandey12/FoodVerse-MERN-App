@@ -30,6 +30,10 @@
 * **Axios** (Promise-based HTTP client with cookie defaults)
 * **Tailwind CSS & DaisyUI** (Modern layout and styling components)
 * **Context API** (Global state management for auth, cart items, and live catalog stream)
+* ## 🔗 Live Deployment Links
+* 
+* **Customer Web App:** [https://foodverse-frontend.vercel.app](https://your-frontend-link)
+* **Admin Dashboard Portal:** [https://foodverse-admin.vercel.app](https://food-verse-mern-app-ete4-33oawblyp-somesh-pandey12s-projects.vercel.app)
 
 ### Backend
 * **Node.js & Express.js** (RESTful API architecture)
