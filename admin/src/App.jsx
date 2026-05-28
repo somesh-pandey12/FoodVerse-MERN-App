@@ -8,7 +8,7 @@ import List from './pages/List/List'
 
 const App = () => {
   // 🔥 BACKEND ANCHOR LINK: Isko yahan declare kiya taaki saare pages ko mil sake
-  const url = "http://localhost:8000";
+  const url = "https://foodverse-mern-app.onrender.com";
 
   return (
     <div className='admin-app' style={{ minHeight: "100vh", backgroundColor: "#f8f9fa", fontFamily: "sans-serif" }}>
