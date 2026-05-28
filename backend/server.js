@@ -1,18 +1,20 @@
+// File Location: backend/server.js
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-dotenv.config();
+dotenv.config(); // 👈 Environment variables initialized right at the start
 
 import mongoose from "mongoose";
 import path from "path";
 import cookieParser from "cookie-parser";
 import { fileURLToPath } from "url";
-import orderRouter from "./routes/orderRoute.js";
+
+// Router Imports
 import { connectDB } from "./config/db.js";
 import foodRouter from "./routes/foodRoute.js";
 import userRouter from "./routes/userRoute.js";
 import cartRouter from "./routes/cartRoute.js";
-
+import orderRouter from "./routes/orderRoute.js"; // 📦 Sync with Razorpay logic
 
 const app = express();
 const port = process.env.PORT || 8000;
@@ -21,27 +23,29 @@ const port = process.env.PORT || 8000;
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Middleware
+// ==========================================
+// 🛡️ MIDDLEWARES (SABSE UPAR)
+// ==========================================
+
+// 1. ✅ Enable JSON Body Parser
 app.use(express.json());
 
-// ✅ Enable Cookie Parser
+// 2. ✅ Enable Cookie Parser
 app.use(cookieParser());
-app.use("/api/cart", cartRouter);
-app.use("/api/order", orderRouter);
 
-// ✅ Updated CORS Configuration (Multiple Origins Allowed for Development)
+// 3. ✅ Updated CORS Configuration (Placed before any API call routers)
 const allowedOrigins = [
     process.env.CLIENT_URL,
     "http://localhost:5173",
     "http://localhost:5174",
     "http://127.0.0.1:5173",
     "http://127.0.0.1:5174"
-].filter(Boolean); // Kisi undefined value ko remove karne ke liye
+].filter(Boolean); // Filter out undefined values safely
 
 app.use(
     cors({
         origin: function (origin, callback) {
-            // browser requests bina origin ke (jaise Postman) ya allowedOrigins list wale sab valid hain
+            // Allow requests with no origin (like mobile apps, Postman) or origins in allowed list
             if (!origin || allowedOrigins.indexOf(origin) !== -1) {
                 callback(null, true);
             } else {
@@ -51,23 +55,34 @@ app.use(
         credentials: true
     })
 );
+// 🗄️ DATABASE CONNECTION
 
-// DB Connection
 connectDB();
+// 📁 STATIC ASSETS ENGINE
 
-// Static Folder
 app.use("/images", express.static("uploads"));
 
-// API Routes
+// 🌐 API CONTROLLER ROUTERS 
+
 app.use("/api/food", foodRouter);
 app.use("/api/user", userRouter);
+app.use("/api/cart", cartRouter);
+app.use("/api/order", orderRouter); // 👈 Correct sequence placement for cross-origin razorpay requests
 
 // Home Route
 app.get("/", (req, res) => {
-    res.send("🚀 API Working smoothly");
+    res.send("🚀 API Working smoothly with Razorpay Configured!");
+});
+// 🚀 SERVER BOOT ENGINE
+
+app.use((err, req, res, next) => {
+    if (err.message === "Blocked by CORS Policy") {
+        res.status(403).json({ success: false, message: "CORS Blocked this request." });
+    } else {
+        next(err);
+    }
 });
 
-// Server Start
 app.listen(
     port,
     "0.0.0.0",

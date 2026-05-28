@@ -5,18 +5,23 @@ import jwt from "jsonwebtoken";
 const authMiddleware = async (req, res, next) => {
     let token;
 
-    // ✅ Check Token From Cookies (Primary secure entry channel)
+    // 1️⃣ Check Token From Cookies (Primary secure entry channel)
     if (req.cookies && req.cookies.token) {
         token = req.cookies.token;
     }
 
-    // ✅ Fallback: Check Authorization Header (Useful for Admin tools or postman testing)
+    // 2️⃣ Check Authorization Header (Bearer token format for Postman/Admin)
     else if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
         token = req.headers.authorization.split(" ")[1];
     }
 
+    // 3️⃣ ✅ ADDED: Fallback check for frontend custom token header (e.g., headers: { token })
+    else if (req.headers.token) {
+        token = req.headers.token;
+    }
+
     // ❌ No Token Found (Enforce 401 Unauthorized status code)
-    if (!token || token === "none") {
+    if (!token || token === "none" || token === "null" || token === "undefined") {
         return res.status(401).json({
             success: false,
             message: "Not Authorized, Login Again!"

@@ -1,5 +1,3 @@
-// File Location: frontend/src/context/StoreContext.jsx
-
 import React, {
     createContext,
     useState,
@@ -8,33 +6,25 @@ import React, {
 
 import axios from "axios";
 
-export const StoreContext =
-    createContext(null);
+export const StoreContext = createContext(null);
 
 const StoreContextProvider = (props) => {
 
     // 🌐 Backend Base URL
-    const url =
-        "http://localhost:8000";
+    const url = "http://localhost:8000";
 
     // 🔐 Authentication State
-    const [token, setToken] =
-        useState("");
-
-    const [user, setUser] =
-        useState(null);
+    const [token, setToken] = useState("");
+    const [user, setUser] = useState(null);
 
     // ⏳ Loading State
-    const [loading, setLoading] =
-        useState(true);
+    const [loading, setLoading] = useState(true);
 
     // 🛒 Cart State
-    const [cartItems, setCartItems] =
-        useState({});
+    const [cartItems, setCartItems] = useState({});
 
     // 🍔 Food List State
-    const [food_list, setFoodList] =
-        useState([]);
+    const [food_list, setFoodList] = useState([]);
 
     // ✅ Automatically include cookies
     axios.defaults.withCredentials = true;
@@ -44,347 +34,193 @@ const StoreContextProvider = (props) => {
         {
             _id: "1",
             name: "Premium Greek Salad",
-            image:
-                "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=500",
+            image: "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=500",
             price: 120,
-            description:
-                "Crisp cucumbers, tomatoes, olives, and feta cheese.",
+            description: "Crisp cucumbers, tomatoes, olives, and feta cheese.",
             category: "Salad"
         },
-
         {
             _id: "2",
             name: "Crunchy Veg Roll",
-            image:
-                "https://images.unsplash.com/photo-1534353436294-0dbd4bdac845?w=500",
+            image: "https://images.unsplash.com/photo-1534353436294-0dbd4bdac845?w=500",
             price: 100,
-            description:
-                "Freshly wrapped sautéed vegetables.",
+            description: "Freshly wrapped sautéed vegetables.",
             category: "Rolls"
         },
-
         {
             _id: "3",
             name: "Classic Chocolate Fudge",
-            image:
-                "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=500",
+            image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=500",
             price: 250,
-            description:
-                "Rich chocolate layered with smooth ganache.",
+            description: "Rich chocolate layered with smooth ganache.",
             category: "Cake"
         }
     ];
 
     // 🍔 Fetch Food List
     const fetchFoodList = async () => {
-
         try {
-
             setLoading(true);
+            const response = await axios.get(`${url}/api/food/list`);
 
-            const response =
-                await axios.get(
-                    `${url}/api/food/list`
-                );
-
-            if (
-                response.data.success &&
-                response.data.data.length > 0
-            ) {
-
-                setFoodList(
-                    response.data.data
-                );
-
-                console.log(
-                    "🛒 Live Food Data Synced:",
-                    response.data.data
-                );
-
+            if (response.data.success && response.data.data.length > 0) {
+                setFoodList(response.data.data);
+                console.log("🛒 Live Food Data Synced:", response.data.data);
             } else {
-
-                setFoodList(
-                    fallback_list
-                );
+                setFoodList(fallback_list);
             }
-
         } catch (error) {
-
-            console.log(
-                "⚠️ Backend offline, loading fallback data."
-            );
-
-            console.error(
-                "Failed executing catalog data load streams:",
-                error
-            );
-
-            setFoodList(
-                fallback_list
-            );
-
+            console.log("⚠️ Backend offline, loading fallback data.");
+            console.error("Failed executing catalog data load streams:", error);
+            setFoodList(fallback_list);
         } finally {
-
             setLoading(false);
         }
     };
 
     // 👤 Check User Authentication
-    const checkUserAuth = async (
-        localToken
-    ) => {
-
+    const checkUserAuth = async (localToken) => {
         try {
+            const activeToken = localToken || token || localStorage.getItem("token");
+            if (!activeToken) return false;
 
-            const response =
-                await axios.get(
-                    `${url}/api/user/me`,
-                    {
-                        headers: {
-                            token:
-                                localToken
-                        }
-                    }
-                );
+            const response = await axios.get(`${url}/api/user/me`, {
+                headers: { token: activeToken }
+            });
 
-            if (
-                response.data.success
-            ) {
-
-                setUser(
-                    response.data.user
-                );
-
+            if (response.data.success) {
+                setUser(response.data.user);
+                return true;
             } else {
-
                 clearAuthSession();
+                return false;
             }
-
         } catch (error) {
-
-            if (
-                error.response
-                    ?.status === 401
-            ) {
-
-                localStorage.removeItem(
-                    "token"
-                );
-
+            if (error.response?.status === 401) {
+                localStorage.removeItem("token");
                 clearAuthSession();
             }
-
-            console.error(
-                "Authentication validation failure:",
-                error
-            );
+            console.error("Authentication validation failure:", error);
+            return false;
         }
     };
 
     // 🧹 Clear User Session
-    const clearAuthSession =
-        () => {
-
-            setToken("");
-
-            setUser(null);
-
-            setCartItems({});
-        };
+    const clearAuthSession = () => {
+        setToken("");
+        setUser(null);
+        setCartItems({});
+    };
 
     // 📥 Load Persistent Cart Data
-    const loadCartData = async (
-        activeToken
-    ) => {
-
+    const loadCartData = async (activeToken) => {
         try {
+            const tokenToUse = activeToken || token || localStorage.getItem("token");
+            if (!tokenToUse) return;
 
-            const response =
-                await axios.get(
-                    `${url}/api/cart/get`,
-                    {
-                        headers: {
-                            token:
-                                activeToken
-                        }
-                    }
-                );
+            const response = await axios.get(`${url}/api/cart/get`, {
+                headers: { token: tokenToUse }
+            });
 
-            if (
-                response.data.success
-            ) {
-
-                setCartItems(
-                    response.data
-                        .cartData || {}
-                );
+            if (response.data.success) {
+                setCartItems(response.data.cartData || {});
             }
-
         } catch (error) {
-
-            console.error(
-                "❌ Cart retrieval processing error:",
-                error
-            );
+            console.error("❌ Cart retrieval processing error:", error);
         }
     };
 
     // 🛒 Add Item To Cart
-    const addToCart = async (
-        itemId
-    ) => {
-
+    const addToCart = async (itemId) => {
         // ⚡ Instant UI Update
         setCartItems((prev) => ({
             ...prev,
-            [itemId]:
-                (prev[itemId] || 0) + 1
+            [itemId]: (prev[itemId] || 0) + 1
         }));
 
-        // 🔄 Sync With Backend
-        if (token) {
-
+        // 🔄 Sync With Backend (Fresh token token pull logic)
+        const activeToken = token || localStorage.getItem("token");
+        if (activeToken) {
             try {
-
                 await axios.post(
                     `${url}/api/cart/add`,
                     { itemId },
-                    {
-                        headers: {
-                            token
-                        }
-                    }
+                    { headers: { token: activeToken } }
                 );
-
             } catch (error) {
-
-                console.error(
-                    "❌ Database cart incremental syncing fault:",
-                    error
-                );
+                console.error("❌ Database cart incremental syncing fault:", error);
             }
         }
     };
 
     // ❌ Remove Item From Cart
-    const removeFromCart = async (
-        itemId
-    ) => {
-
+    const removeFromCart = async (itemId) => {
         // ⚡ Instant UI Update
         setCartItems((prev) => {
-
-            const updated = {
-                ...prev
-            };
-
-            if (
-                updated[itemId] > 1
-            ) {
-
+            const updated = { ...prev };
+            if (updated[itemId] > 1) {
                 updated[itemId] -= 1;
-
             } else {
-
                 delete updated[itemId];
             }
-
             return updated;
         });
 
-        // 🔄 Sync With Backend
-        if (token) {
-
+        // 🔄 Sync With Backend (Fresh token pull logic)
+        const activeToken = token || localStorage.getItem("token");
+        if (activeToken) {
             try {
-
                 await axios.post(
                     `${url}/api/cart/remove`,
                     { itemId },
-                    {
-                        headers: {
-                            token
-                        }
-                    }
+                    { headers: { token: activeToken } }
                 );
-
             } catch (error) {
-
-                console.error(
-                    "❌ Database cart decremental syncing fault:",
-                    error
-                );
+                console.error("❌ Database cart decremental syncing fault:", error);
             }
         }
     };
 
     // 💰 Calculate Total Cart Amount
-    const getTotalCartAmount =
-        () => {
-
-            let totalAmount = 0;
-
-            for (const item in cartItems) {
-
-                if (
-                    cartItems[item] > 0
-                ) {
-
-                    let itemInfo =
-                        food_list.find(
-                            (product) =>
-                                product._id === item
-                        );
-
-                    if (itemInfo) {
-
-                        totalAmount +=
-                            itemInfo.price *
-                            cartItems[item];
-                    }
+    const getTotalCartAmount = () => {
+        let totalAmount = 0;
+        for (const item in cartItems) {
+            if (cartItems[item] > 0) {
+                let itemInfo = food_list.find((product) => product._id === item);
+                if (itemInfo) {
+                    totalAmount += itemInfo.price * cartItems[item];
                 }
             }
-
-            return totalAmount;
-        };
+        }
+        return totalAmount;
+    };
 
     // 🚀 Initial App Bootstrap
     const loadData = async () => {
-
         await fetchFoodList();
 
-        const persistentToken =
-            localStorage.getItem(
-                "token"
-            );
+        const persistentToken = localStorage.getItem("token");
 
         if (persistentToken) {
+            setToken(persistentToken);
 
-            setToken(
-                persistentToken
-            );
+            // 👤 Restore User Session Aur check karo ki token valid hai ya nahi
+            const isAuthValid = await checkUserAuth(persistentToken);
 
-            // 👤 Restore User Session
-            await checkUserAuth(
-                persistentToken
-            );
-
-            // 🛒 Restore Cart
-            await loadCartData(
-                persistentToken
-            );
+            // 🛒 Agar user valid hai, tabhi cart fetch karo
+            if (isAuthValid) {
+                await loadCartData(persistentToken);
+            }
         }
     };
 
     // 🚀 Execute On App Start
     useEffect(() => {
-
         loadData();
-
     }, []);
 
     // 🌍 Global Context Value
     const contextValue = {
-
         // 🍔 Food
         food_list,
         setFoodList,
@@ -392,16 +228,13 @@ const StoreContextProvider = (props) => {
         // 🛒 Cart
         cartItems,
         setCartItems,
-
         addToCart,
         removeFromCart,
-
         getTotalCartAmount,
 
         // 🔐 Auth
         token,
         setToken,
-
         user,
         setUser,
 
@@ -413,16 +246,10 @@ const StoreContextProvider = (props) => {
     };
 
     return (
-
-        <StoreContext.Provider
-            value={contextValue}
-        >
-
+        <StoreContext.Provider value={contextValue}>
             {props.children}
-
         </StoreContext.Provider>
     );
 };
 
-export default
-    StoreContextProvider;
+export default StoreContextProvider;

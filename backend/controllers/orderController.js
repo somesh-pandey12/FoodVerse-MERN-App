@@ -2,94 +2,152 @@
 import orderModel from "../models/orderModel.js";
 import userModel from "../models/userModel.js";
 import Stripe from "stripe";
+import Razorpay from "razorpay";
+import "dotenv/config";
 
-// 🛒 1. Placing User Order and Redirecting to Stripe checkout
+console.log(
+    "Razorpay Key Status:",
+    process.env.RAZORPAY_KEY_ID ? "Loaded Successfully" : "Missing"
+);
+
+const razorpay = new Razorpay({
+    key_id: process.env.RAZORPAY_KEY_ID || "rzp_test_xxxxxxxxx",
+    key_secret: process.env.RAZORPAY_KEY_SECRET || "xxxxxxxxxxxx"
+});
+
 const placeOrder = async (req, res) => {
-    const frontend_url = "http://127.0.0.1:5173"; // Aapka frontend port node
-    
-    try {
-        // ✨ SAFE INITIALIZATION: Function ke andar initialize karne se key humesha milegi
-        const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+    const frontend_url = "http://127.0.0.1:5173";
 
-        // Create baseline record entry in MongoDB
+    try {
+        // 1. Save order locally in database
         const newOrder = new orderModel({
             userId: req.body.userId,
             items: req.body.items,
             amount: req.body.amount,
-            address: req.body.address
+            address: req.body.address,
+            payment: false,
+            status: "Pending"
         });
+
         await newOrder.save();
-        
-        // Cart clean operation baseline preparation
+
+        // 2. Clear customer's cart
         await userModel.findByIdAndUpdate(req.body.userId, { cartData: {} });
 
-        // Stripe format line items map layout mapping conversion
-        const line_items = req.body.items.map((item) => ({
-            price_data: {
-                currency: "inr",
-                product_data: {
-                    name: item.name
-                },
-                unit_amount: item.price * 100 // Amount in paise
-            },
-            quantity: item.quantity
-        }));
+        // 3. Build Razorpay Options Array
+        const razorpayOptions = {
+            amount: req.body.amount * 100, // Converts rupees to paise
+            currency: "INR",
+            receipt: `receipt_${newOrder._id}`
+        };
 
-        // Adding fixed delivery charges allocation
-        line_items.push({
-            price_data: {
-                currency: "inr",
-                product_data: {
-                    name: "Delivery Charges"
-                },
-                unit_amount: 40 * 100 
-            },
-            quantity: 1
+        const razorpayOrder = await razorpay.orders.create(razorpayOptions);
+
+        // 4. Stripe Integration (Optional Fallback)
+        let stripeSessionUrl = null;
+        if (process.env.STRIPE_SECRET_KEY) {
+            try {
+                const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+                const line_items = req.body.items.map((item) => ({
+                    price_data: {
+                        currency: "inr",
+                        product_data: { name: item.name },
+                        unit_amount: item.price * 100
+                    },
+                    quantity: item.quantity
+                }));
+
+                line_items.push({
+                    price_data: {
+                        currency: "inr",
+                        product_data: { name: "Delivery Charges" },
+                        unit_amount: 40 * 100
+                    },
+                    quantity: 1
+                });
+
+                const session = await stripe.checkout.sessions.create({
+                    line_items,
+                    mode: "payment",
+                    success_url: `${frontend_url}/verify?success=true&orderId=${newOrder._id}`,
+                    cancel_url: `${frontend_url}/verify?success=false&orderId=${newOrder._id}`
+                });
+
+                stripeSessionUrl = session.url;
+            } catch (stripeError) {
+                console.log("Stripe Session Error:", stripeError.message);
+            }
+        }
+
+        // 5. Consolidated API Response Engine
+        res.status(200).json({
+            success: true,
+            orderId: newOrder._id,
+            order: razorpayOrder,       // 👈 Added as 'order' fallback alias for standard frontend templates
+            razorpayOrder,              // Kept for backward compatibility
+            stripeSessionUrl,
+            message: "Order created successfully"
         });
-
-        // Generate the Stripe Hosted Checkout Redirect Session Links
-        const session = await stripe.checkout.sessions.create({
-            line_items: line_items,
-            mode: 'payment',
-            success_url: `${frontend_url}/verify?success=true&orderId=${newOrder._id}`,
-            cancel_url: `${frontend_url}/verify?success=false&orderId=${newOrder._id}`,
-        });
-
-        res.json({ success: true, session_url: session.url });
 
     } catch (error) {
-        console.log("❌ Stripe Checkout Initialization Failed: ", error);
-        res.status(500).json({ success: false, message: "Stripe Checkout session generation error" });
+        console.log("Order Placement Error:", error);
+        res.status(500).json({
+            success: false,
+            message: "Unable to create order"
+        });
     }
 };
 
-// ⚡ 2. Verify Payment Hook Callback Routing
 const verifyOrder = async (req, res) => {
     const { orderId, success } = req.body;
+
     try {
-        if (success === "true") {
-            await orderModel.findByIdAndUpdate(orderId, { payment: true });
-            res.json({ success: true, message: "Paid Successfully" });
-        } else {
-            await orderModel.findByIdAndDelete(orderId);
-            res.json({ success: false, message: "Payment Cancelled/Aborted" });
+        if (success === "true" || success === true) {
+            await orderModel.findByIdAndUpdate(orderId, {
+                payment: true,
+                status: "Food Processing"
+            });
+
+            return res.status(200).json({
+                success: true,
+                message: "Payment verified successfully"
+            });
         }
+
+        // If payment fails, remove the pending order record safely
+        await orderModel.findByIdAndDelete(orderId);
+        res.status(400).json({
+            success: false,
+            message: "Payment failed or cancelled"
+        });
+
     } catch (error) {
-        console.log("❌ Payment verification sync module failed: ", error);
-        res.status(500).json({ success: false, message: "Verification processing error" });
+        console.log("Payment Verification Error:", error);
+        res.status(500).json({
+            success: false,
+            message: "Payment verification failed"
+        });
     }
 };
 
-// 👤 3. User Orders Fetching Endpoint for Frontend Dashboard
 const userOrders = async (req, res) => {
     try {
-        // Auth middleware se req.body.userId automatically mil jayegi
         const orders = await orderModel.find({ userId: req.body.userId });
-        res.json({ success: true, data: orders });
+        res.status(200).json({
+            success: true,
+            data: orders
+        });
     } catch (error) {
-        console.log("❌ Failed to fetch user orders: ", error);
-        res.status(500).json({ success: false, message: "Error retrieving orders history" });
+        console.log("Fetch Orders Error:", error);
+        res.status(500).json({
+            success: false,
+            message: "Unable to fetch orders"
+        });
     }
 };
 
-export { placeOrder, verifyOrder, userOrders };
+export {
+    placeOrder,
+    verifyOrder,
+    userOrders
+};
