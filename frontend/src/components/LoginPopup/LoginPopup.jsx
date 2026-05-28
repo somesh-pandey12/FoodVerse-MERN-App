@@ -88,8 +88,7 @@ const LoginPopup = ({
 
         try {
 
-            // ✅ Important:
-            // withCredentials for cookies
+            // ✅ withCredentials for cookies
             const response =
                 await axios.post(
                     newUrl,
@@ -104,10 +103,22 @@ const LoginPopup = ({
                 response.data.success
             ) {
 
-                // ✅ Mark User Logged In
-                setToken(true);
+                // ✅ Save Token
+                if (
+                    response.data.token
+                ) {
 
-                // ✅ Store User Data
+                    localStorage.setItem(
+                        "token",
+                        response.data.token
+                    );
+
+                    setToken(
+                        response.data.token
+                    );
+                }
+
+                // ✅ Save User Data
                 if (
                     response.data.user
                 ) {
@@ -145,7 +156,7 @@ const LoginPopup = ({
         }
     };
 
-    // 🎨 Swiggy Style UI
+    // 🎨 Inline Styling
     const styles = {
 
         overlay: {
@@ -255,25 +266,31 @@ const LoginPopup = ({
                 {/* Header */}
                 <div
                     style={styles.title}
+                    className="login-popup-title"
                 >
 
                     <h2>
                         {currState}
                     </h2>
 
-                    <img
+                    <span
                         onClick={() =>
                             setShowLogin(false)
                         }
 
-                        src={
-                            assets.cross_icon
-                        }
+                        style={{
+                            cursor:
+                                "pointer",
 
-                        alt="close"
+                            fontSize:
+                                "25px",
 
-                        style={styles.close}
-                    />
+                            fontWeight:
+                                "500"
+                        }}
+                    >
+                        &times;
+                    </span>
                 </div>
 
                 {/* Error Message */}
@@ -289,10 +306,8 @@ const LoginPopup = ({
                     style={styles.inputs}
                 >
 
-                    {currState ===
-                    "Login"
-                        ? null
-                        : (
+                    {currState !==
+                        "Login" && (
 
                         <input
                             name="name"
@@ -370,7 +385,7 @@ const LoginPopup = ({
 
                     {currState ===
                     "Sign Up"
-                        ? "Create account"
+                        ? "Create Account"
                         : "Login"}
                 </button>
 
@@ -391,13 +406,6 @@ const LoginPopup = ({
                         privacy policy.
                     </p>
                 </div>
-                <div className="login-popup-title">
-    <h2>Login</h2>
-    {}
-    <span onClick={() => setShowLogin(false)} style={{ cursor: 'pointer', fontSize: '25px', fontWeight: '500' }}>
-        &times;
-    </span>
-</div>
 
                 {/* Switch Login/Register */}
                 {currState ===

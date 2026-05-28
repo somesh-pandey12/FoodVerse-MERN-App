@@ -1,144 +1,371 @@
 // File Location: frontend/src/context/StoreContext.jsx
-import React, { createContext, useState, useEffect } from "react";
+
+import React, {
+    createContext,
+    useState,
+    useEffect
+} from "react";
+
 import axios from "axios";
 
-export const StoreContext = createContext(null);
+export const StoreContext =
+    createContext(null);
 
 const StoreContextProvider = (props) => {
-    // 1. Maintain consistent architecture base configuration
-    const url = "http://localhost:8000";
-    
-    // UI state states — token is now a simple boolean tracking active sessions
-    const [token, setToken] = useState(false);
-    const [user, setUser] = useState(null); 
-    const [cartItems, setCartItems] = useState({});
-    const [food_list, setFoodList] = useState([]);
 
-    // Global Axios Flag: Forces browser to include cookies automatically with cross-origin requests
+    // Backend Base URL
+    const url =
+        "http://localhost:8000";
+
+    // Authentication State
+    const [token, setToken] =
+        useState("");
+
+    const [user, setUser] =
+        useState(null);
+
+    // Loading State (Skeleton Loader Support)
+    const [loading, setLoading] =
+        useState(true);
+
+    // Cart State
+    const [cartItems, setCartItems] =
+        useState({});
+
+    // Food List State
+    const [food_list, setFoodList] =
+        useState([]);
+
+    // Automatically include cookies
     axios.defaults.withCredentials = true;
 
-    // Fallback Mock Data in case backend is offline during manual testing
+    // Backup Fallback Data
     const fallback_list = [
-        { _id: "1", name: "Premium Greek Salad", image: "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=500", price: 120, description: "Crisp cucumbers, tomatoes, festive olives, and premium feta cheese.", category: "Salad" },
-        { _id: "2", name: "Crunchy Veg Roll", image: "https://images.unsplash.com/photo-1534353436294-0dbd4bdac845?w=500", price: 100, description: "Freshly flaked flatbread wrapped around sautéed seasoned vegetables.", category: "Rolls" },
-        { _id: "3", name: "Classic Chocolate Fudge", image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=500", price: 250, description: "Gooey chocolate richness layered with velvety smooth ganache.", category: "Cake" }
+        {
+            _id: "1",
+            name: "Premium Greek Salad",
+            image:
+                "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=500",
+            price: 120,
+            description:
+                "Crisp cucumbers, tomatoes, olives, and feta cheese.",
+            category: "Salad"
+        },
+
+        {
+            _id: "2",
+            name: "Crunchy Veg Roll",
+            image:
+                "https://images.unsplash.com/photo-1534353436294-0dbd4bdac845?w=500",
+            price: 100,
+            description:
+                "Freshly wrapped sautéed vegetables.",
+            category: "Rolls"
+        },
+
+        {
+            _id: "3",
+            name: "Classic Chocolate Fudge",
+            image:
+                "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=500",
+            price: 250,
+            description:
+                "Rich chocolate layered with smooth ganache.",
+            category: "Cake"
+        }
     ];
 
-    // 2. Fetch dynamic food items list from database
+    // Fetch Food List
     const fetchFoodList = async () => {
+
         try {
-            const response = await axios.get(`${url}/api/food/list`);
-            if (response.data.success && response.data.data.length > 0) {
-                setFoodList(response.data.data);
+
+            setLoading(true);
+
+            const response =
+                await axios.get(
+                    `${url}/api/food/list`
+                );
+
+            if (
+                response.data.success &&
+                response.data.data.length > 0
+            ) {
+
+                setFoodList(
+                    response.data.data
+                );
+
+                console.log(
+                    "🛒 Live Food Data Synced:",
+                    response.data.data
+                );
+
             } else {
-                setFoodList(fallback_list);
+
+                setFoodList(
+                    fallback_list
+                );
             }
+
         } catch (error) {
-            console.log("⚠️ Backend offline, loading Swiggy premium fallback layout.");
-            setFoodList(fallback_list);
+
+            console.log(
+                "⚠️ Backend offline, loading fallback data."
+            );
+
+            console.error(error);
+
+            setFoodList(
+                fallback_list
+            );
+
+        } finally {
+
+            setLoading(false);
         }
     };
 
-    // 3. Handshake Session Validation Routine (Resume-Grade Authentication Verification)
-    // Instead of trusting stateful local client text strings, we ping the backend server
-    const checkUserAuth = async () => {
+    // Check User Authentication
+    const checkUserAuth = async (
+        localToken
+    ) => {
+
         try {
-            const response = await axios.get(`${url}/api/user/me`);
+
+            const response =
+                await axios.get(
+                    `${url}/api/user/me`,
+                    {
+                        headers: {
+                            token:
+                                localToken
+                        }
+                    }
+                );
+
             if (response.data.success) {
-                setToken(true);
-                setUser(response.data.user);
-                
-                // Automatically populate database cart state if saved data exists
-                if (response.data.user.cartData) {
-                    setCartItems(response.data.user.cartData);
+
+                setUser(
+                    response.data.user
+                );
+
+                // Load saved cart data
+                if (
+                    response.data.user
+                        .cartData
+                ) {
+
+                    setCartItems(
+                        response.data.user
+                            .cartData
+                    );
                 }
+
             } else {
+
                 clearAuthSession();
             }
+
         } catch (error) {
-            // Safe fallback loop if server returns 401/500/offline status
-            clearAuthSession();
-        }
-    };
 
-    const clearAuthSession = () => {
-        setToken(false);
-        setUser(null);
-    };
+            if (
+                error.response
+                    ?.status === 401
+            ) {
 
-    // 4. Enhanced Database-Synced Cart Operations
-    const addToCart = async (itemId) => {
-        // Optimistic UI update: change client state instantly for smooth responsiveness
-        setCartItems((prev) => ({ ...prev, [itemId]: (prev[itemId] || 0) + 1 }));
+                localStorage.removeItem(
+                    "token"
+                );
 
-        // If authenticated via cookie, securely stream mutation to database endpoint
-        if (token) {
-            try {
-                await axios.post(`${url}/api/cart/add`, { itemId });
-            } catch (error) {
-                console.error("❌ Failed to synchronize cart item addition with server:", error);
+                clearAuthSession();
             }
         }
     };
 
-    const removeFromCart = async (itemId) => {
+    // Clear Auth Session
+    const clearAuthSession =
+        () => {
+
+            setToken("");
+
+            setUser(null);
+        };
+
+    // Add To Cart
+    const addToCart = async (
+        itemId
+    ) => {
+
+        setCartItems((prev) => ({
+            ...prev,
+            [itemId]:
+                (prev[itemId] || 0) + 1
+        }));
+
+        // Sync with backend if logged in
+        if (token) {
+
+            try {
+
+                await axios.post(
+                    `${url}/api/cart/add`,
+                    { itemId },
+                    {
+                        headers: {
+                            token
+                        }
+                    }
+                );
+
+            } catch (error) {
+
+                console.error(
+                    "❌ Cart sync failed:",
+                    error
+                );
+            }
+        }
+    };
+
+    // Remove From Cart
+    const removeFromCart = async (
+        itemId
+    ) => {
+
         setCartItems((prev) => {
-            const updated = { ...prev };
-            if (updated[itemId] > 1) updated[itemId] -= 1;
-            else delete updated[itemId];
+
+            const updated = {
+                ...prev
+            };
+
+            if (
+                updated[itemId] > 1
+            ) {
+
+                updated[itemId] -= 1;
+
+            } else {
+
+                delete updated[itemId];
+            }
+
             return updated;
         });
 
+        // Sync remove with backend
         if (token) {
+
             try {
-                await axios.post(`${url}/api/cart/remove`, { itemId });
+
+                await axios.post(
+                    `${url}/api/cart/remove`,
+                    { itemId },
+                    {
+                        headers: {
+                            token
+                        }
+                    }
+                );
+
             } catch (error) {
-                console.error("❌ Failed to synchronize cart item removal with server:", error);
+
+                console.error(
+                    "❌ Remove sync failed:",
+                    error
+                );
             }
         }
     };
 
-    const getTotalCartAmount = () => {
-        let totalAmount = 0;
-        for (const item in cartItems) {
-            if (cartItems[item] > 0) {
-                let itemInfo = food_list.find((product) => product._id === item);
-                if (itemInfo) {
-                    totalAmount += itemInfo.price * cartItems[item];
+    // Calculate Total Cart Amount
+    const getTotalCartAmount =
+        () => {
+
+            let totalAmount = 0;
+
+            for (const item in cartItems) {
+
+                if (
+                    cartItems[item] > 0
+                ) {
+
+                    let itemInfo =
+                        food_list.find(
+                            (product) =>
+                                product._id === item
+                        );
+
+                    if (itemInfo) {
+
+                        totalAmount +=
+                            itemInfo.price *
+                            cartItems[item];
+                    }
                 }
             }
+
+            return totalAmount;
+        };
+
+    // Initial App Load
+    const loadData = async () => {
+
+        await fetchFoodList();
+
+        const localToken =
+            localStorage.getItem(
+                "token"
+            );
+
+        if (localToken) {
+
+            setToken(localToken);
+
+            await checkUserAuth(
+                localToken
+            );
         }
-        return totalAmount;
     };
 
-    // 5. App Initialization Setup Lifecycle
     useEffect(() => {
-        const initializeAppState = async () => {
-            await fetchFoodList();
-            await checkUserAuth();
-        };
-        initializeAppState();
-    }, [token]); // Re-triggers verification on active login action steps
+
+        loadData();
+
+    }, []);
 
     const contextValue = {
+
         food_list,
+        setFoodList,
+
         cartItems,
         setCartItems,
+
         addToCart,
         removeFromCart,
+
         getTotalCartAmount,
-        url,
+
         token,
         setToken,
+
         user,
-        setUser
+        setUser,
+
+        loading,
+
+        url
     };
 
     return (
-        <StoreContext.Provider value={contextValue}>
+        <StoreContext.Provider
+            value={contextValue}
+        >
             {props.children}
         </StoreContext.Provider>
     );
 };
 
-export default StoreContextProvider;
+export default
+    StoreContextProvider;

@@ -1,245 +1,51 @@
-import { useContext } from "react";
-import "./FoodItem.css";
+import React, { useContext } from 'react';
+import { StoreContext } from '../../context/StoreContext';
 
-import { StoreContext } from "../../context/StoreContext";
+const FoodItem = ({ id, name, price, description, image }) => {
+  const { cartItems, setCartItems, url } = useContext(StoreContext);
 
-const FoodItem = ({
-    id,
-    name,
-    price,
-    description,
-    image
-}) => {
+  return (
+    <div className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 flex flex-col h-full justify-between">
+      <div className="relative overflow-hidden">
+        <img 
+          src={`${url}/images/${image}`} 
+          alt={name} 
+          className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500"
+        />
+        <span className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm text-amber-600 font-semibold px-3 py-1 rounded-full text-xs shadow-sm">
+          ★ 4.2
+        </span>
+      </div>
 
-    const {
-        cartItems,
-        addToCart,
-        removeFromCart,
-        url
-    } = useContext(StoreContext);
-
-    const imageUrl = image?.startsWith("http")
-        ? image
-        : `${url}/images/${image}`;
-
-    return (
-
-        <div
-            className="food-item"
-            style={{
-                width: "100%",
-                backgroundColor: "#ffffff",
-                borderRadius: "18px",
-                overflow: "hidden",
-                boxShadow: "0 4px 15px rgba(0,0,0,0.08)",
-                transition: "all 0.3s ease"
-            }}
-        >
-
-            <div
-                className="food-item-img-container"
-                style={{
-                    position: "relative"
-                }}
-            >
-
-                <img
-                    className="food-item-image"
-                    src={imageUrl}
-                    alt={name}
-                    style={{
-                        width: "100%",
-                        height: "220px",
-                        objectFit: "cover",
-                        display: "block"
-                    }}
-                />
-
-                {!cartItems[id] ? (
-
-                    <button
-                        onClick={() => addToCart(id)}
-                        className="add-btn"
-                        style={{
-                            position: "absolute",
-                            bottom: "15px",
-                            right: "15px",
-                            width: "42px",
-                            height: "42px",
-                            borderRadius: "50%",
-                            border: "none",
-                            backgroundColor: "#ffffff",
-                            color: "#ff4321",
-                            fontSize: "24px",
-                            fontWeight: "600",
-                            cursor: "pointer",
-                            boxShadow: "0 3px 10px rgba(0,0,0,0.2)"
-                        }}
-                    >
-                        +
-                    </button>
-
-                ) : (
-
-                    <div
-                        className="food-item-counter"
-                        style={{
-                            position: "absolute",
-                            bottom: "15px",
-                            right: "15px",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "12px",
-                            padding: "8px 12px",
-                            backgroundColor: "#ffffff",
-                            borderRadius: "50px",
-                            boxShadow: "0 3px 10px rgba(0,0,0,0.2)"
-                        }}
-                    >
-
-                        <button
-                            onClick={() => removeFromCart(id)}
-                            style={{
-                                width: "28px",
-                                height: "28px",
-                                borderRadius: "50%",
-                                border: "none",
-                                backgroundColor: "#ffe5e0",
-                                color: "#ff4321",
-                                fontSize: "18px",
-                                fontWeight: "700",
-                                cursor: "pointer"
-                            }}
-                        >
-                            −
-                        </button>
-
-                        <span
-                            style={{
-                                fontSize: "16px",
-                                fontWeight: "600",
-                                minWidth: "18px",
-                                textAlign: "center"
-                            }}
-                        >
-                            {cartItems[id]}
-                        </span>
-
-                        <button
-                            onClick={() => addToCart(id)}
-                            style={{
-                                width: "28px",
-                                height: "28px",
-                                borderRadius: "50%",
-                                border: "none",
-                                backgroundColor: "#ff4321",
-                                color: "#ffffff",
-                                fontSize: "18px",
-                                fontWeight: "700",
-                                cursor: "pointer"
-                            }}
-                        >
-                            +
-                        </button>
-
-                    </div>
-
-                )}
-
-            </div>
-
-            <div
-                className="food-item-info"
-                style={{
-                    padding: "18px"
-                }}
-            >
-
-                <div
-                    className="food-item-name-rating"
-                    style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        marginBottom: "10px"
-                    }}
-                >
-
-                    <h3
-                        style={{
-                            margin: 0,
-                            fontSize: "20px",
-                            fontWeight: "700",
-                            color: "#2c2c2c"
-                        }}
-                    >
-                        {name}
-                    </h3>
-
-                    <span
-                        style={{
-                            backgroundColor: "#fff3ed",
-                            color: "#ff4321",
-                            padding: "4px 10px",
-                            borderRadius: "20px",
-                            fontSize: "13px",
-                            fontWeight: "600"
-                        }}
-                    >
-                        ⭐ 4.5
-                    </span>
-
-                </div>
-
-                <p
-                    className="food-item-desc"
-                    style={{
-                        fontSize: "14px",
-                        color: "#6b7280",
-                        lineHeight: "1.5",
-                        minHeight: "42px",
-                        marginBottom: "15px"
-                    }}
-                >
-                    {description}
-                </p>
-
-                <div
-                    style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center"
-                    }}
-                >
-
-                    <p
-                        className="food-item-price"
-                        style={{
-                            margin: 0,
-                            fontSize: "24px",
-                            fontWeight: "700",
-                            color: "#ff4321"
-                        }}
-                    >
-                        ₹{price}
-                    </p>
-
-                    <span
-                        style={{
-                            fontSize: "13px",
-                            color: "#16a34a",
-                            fontWeight: "600"
-                        }}
-                    >
-                        Free Delivery
-                    </span>
-
-                </div>
-
-            </div>
-
+      <div className="p-5 flex-grow flex flex-col justify-between">
+        <div>
+          <div className="flex justify-between items-start mb-2">
+            <h3 className="font-bold text-lg text-gray-800 line-clamp-1">{name}</h3>
+          </div>
+          <p className="text-gray-500 text-sm mb-4 line-clamp-2 leading-relaxed">{description}</p>
         </div>
-    );
+
+        <div className="flex justify-between items-center mt-4 pt-3 border-t border-gray-50">
+          <span className="text-xl font-extrabold text-gray-900">₹{price}</span>
+          
+          {!cartItems[id] ? (
+            <button 
+              onClick={() => setCartItems(prev => ({ ...prev, [id]: 1 }))}
+              className="btn btn-sm bg-orange-500 hover:bg-orange-600 border-none text-white px-6 rounded-full font-medium tracking-wide shadow-md shadow-orange-200 transition-all transform active:scale-95"
+            >
+              Add
+            </button>
+          ) : (
+            <div className="flex items-center gap-3 bg-orange-500 text-white p-1 px-3 rounded-full shadow-md shadow-orange-200">
+              <button onClick={() => setCartItems(prev => ({ ...prev, [id]: prev[id] - 1 }))} className="font-bold hover:opacity-80 text-lg">-</button>
+              <span className="font-semibold text-sm w-4 text-center">{cartItems[id]}</span>
+              <button onClick={() => setCartItems(prev => ({ ...prev, [id]: prev[id] + 1 }))} className="font-bold hover:opacity-80 text-lg">+</button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export default FoodItem;
