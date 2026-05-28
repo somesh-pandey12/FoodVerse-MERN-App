@@ -52,9 +52,9 @@ const Navbar = ({ setShowLogin }) => {
 
     return (
         <div style={styles.navbar}>
-            {/* Brand Logo Node */}
+            {/* Brand Logo Node - Rebranded to FoodVerse */}
             <h1 onClick={() => { navigate("/"); setMenu("home"); }} style={styles.logo}>
-                Tomato<span style={{ color: "#3d4152" }}>.</span>
+                FoodVerse
             </h1>
 
             {/* Middle Nav Matrix */}

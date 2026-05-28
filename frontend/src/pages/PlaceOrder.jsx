@@ -137,7 +137,7 @@ const PlaceOrder = () => {
                         key: import.meta.env.VITE_RAZORPAY_KEY_ID,
                         amount: razorpayOrder.amount,
                         currency: "INR",
-                        name: "Tomato Food Delivery",
+                        name: "FoodVerse",
                         description: "Order Payment",
                         order_id: razorpayOrder.id,
                         handler: async function (paymentResponse) {
