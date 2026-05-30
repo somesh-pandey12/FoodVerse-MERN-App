@@ -42,6 +42,7 @@ app.use(cookieParser());
 // ==========================================
 
 const allowedOrigins = [
+    "https://food-verse-mern-app.vercel.app", // ✅ Explicitly added Vercel URL
     process.env.CLIENT_URL,
     "http://localhost:5173",
     "http://localhost:5174",

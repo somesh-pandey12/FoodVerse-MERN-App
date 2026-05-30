@@ -1,10 +1,15 @@
+
+
 import React from 'react';
 import './ExploreMenu.css';
 
-
 const demo_menu_list = [
   { menu_name: "Salad", menu_image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=150" },
-  { menu_name: "Rolls", menu_image: "https://images.unsplash.com/photo-1626700051175-6518c4793f4f?w=150" },
+  { 
+   
+    menu_name: "Burger", 
+    menu_image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=150&auto=format&fit=crop" 
+  },
   { menu_name: "Deserts", menu_image: "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=150" },
   { menu_name: "Sandwich", menu_image: "https://images.unsplash.com/photo-1528735602780-2552fd46c7af?w=150" },
   { menu_name: "Cake", menu_image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=150" },
