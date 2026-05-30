@@ -28,7 +28,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // ==========================================
-// 🛡️ GLOBAL MIDDLEWARES
+// 🛡️ GLOBAL MIDDLEWARES & HEADERS
 // ==========================================
 
 // ✅ JSON Parser
@@ -37,12 +37,20 @@ app.use(express.json());
 // ✅ Cookie Parser
 app.use(cookieParser());
 
+// ✅ Google OAuth Pop-up Fix for Production (COOP Error Fix)
+app.use((req, res, next) => {
+    res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
+    next();
+});
+
 // ==========================================
 // 🌍 CORS CONFIGURATION
 // ==========================================
 
 const allowedOrigins = [
-    "https://food-verse-mern-app.vercel.app", // ✅ Explicitly added Vercel URL
+    "https://foodverse-frontend.vercel.app",       // ✅ Readme ke mutabik tumhara actual customer portal URL
+    "https://foodverse-admin.vercel.app",          // ✅ Tumhara Admin Portal URL
+    "https://food-verse-mern-app.vercel.app",      // Backup URL
     process.env.CLIENT_URL,
     "http://localhost:5173",
     "http://localhost:5174",
@@ -60,8 +68,7 @@ app.use(
     cors({
         origin: function (origin, callback) {
 
-            // ✅ Allow requests without origin
-            // (Postman, Mobile Apps, Thunder Client)
+            // ✅ Allow requests without origin (Postman, Mobile Apps, Thunder Client)
             if (!origin) {
                 return callback(null, true);
             }
