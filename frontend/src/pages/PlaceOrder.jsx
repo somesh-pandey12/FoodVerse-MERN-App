@@ -120,7 +120,7 @@ const PlaceOrder = () => {
                         `${url}/api/order/place`,
                         orderData,
                         {
-                            headers: { token: activeToken }
+                            headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
                         }
                     );
 
@@ -134,12 +134,30 @@ const PlaceOrder = () => {
 
                     // 3️⃣ Configure Razorpay
                     const options = {
-                        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+                        key: "rzp_test_Sy0FMTTj4VPu1J",
                         amount: razorpayOrder.amount,
                         currency: "INR",
                         name: "FoodVerse",
                         description: "Order Payment",
                         order_id: razorpayOrder.id,
+                        config: {
+        display: {
+            blocks: {
+                upi: {
+                    name: "Pay using UPI",
+                    instruments: [
+                        {
+                            method: "upi",
+                        },
+                    ],
+                },
+            },
+            sequence: ["block.upi"],
+            preferences: {
+                show_default_blocks: true,
+            },
+        },
+    },
                         handler: async function (paymentResponse) {
                             try {
                                 // ✅ Verify Payment (With Active Token Backup)
@@ -151,7 +169,7 @@ const PlaceOrder = () => {
                                         razorpay_payment_id: paymentResponse.razorpay_payment_id
                                     },
                                     {
-                                        headers: { token: activeToken }
+                                         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` }
                                     }
                                 );
 

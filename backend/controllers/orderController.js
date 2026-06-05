@@ -11,13 +11,13 @@ console.log(
 );
 
 const razorpay = new Razorpay({
-    key_id: process.env.RAZORPAY_KEY_ID || "rzp_test_xxxxxxxxx",
-    key_secret: process.env.RAZORPAY_KEY_SECRET || "xxxxxxxxxxxx"
+    key_id: "rzp_test_Sy0FMTTj4VPu1J" || "rzp_test_xxxxxxxxx",
+    key_secret: "1rb5u8xImrFoCFuVkfOovUPf" || "xxxxxxxxxxxx"
 });
 
 const placeOrder = async (req, res) => {
     const frontend_url = "http://127.0.0.1:5173";
-
+    console.log("Initiating Order Placement for User ID:", req.body.userId);
     try {
         // 1. Save order locally in database
         const newOrder = new orderModel({

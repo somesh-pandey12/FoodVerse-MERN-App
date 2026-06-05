@@ -1,17 +1,18 @@
-import React, {
-    createContext,
-    useState,
-    useEffect
-} from "react";
+// File Location: frontend/src/context/StoreContext.jsx
 
+import React, { createContext, useState, useEffect } from "react";
 import axios from "axios";
+
+// ✅ Global Axios Configuration
+axios.defaults.withCredentials = true;
+axios.defaults.headers.common["token"] =
+    localStorage.getItem("token") || "";
 
 export const StoreContext = createContext(null);
 
 const StoreContextProvider = (props) => {
-
     // 🌐 Backend Base URL
-    const url = "https://foodverse-mern-app.onrender.com";
+    const url = "http://localhost:8000";
 
     // 🔐 Authentication State
     const [token, setToken] = useState("");
@@ -26,9 +27,6 @@ const StoreContextProvider = (props) => {
     // 🍔 Food List State
     const [food_list, setFoodList] = useState([]);
 
-    // ✅ Automatically include cookies
-    axios.defaults.withCredentials = true;
-
     // 🧯 Fallback Demo Data
     const fallback_list = [
         {
@@ -37,7 +35,7 @@ const StoreContextProvider = (props) => {
             image: "https://images.unsplash.com/photo-1540420773420-3366772f4999?w=500",
             price: 120,
             description: "Crisp cucumbers, tomatoes, olives, and feta cheese.",
-            category: "Salad"
+            category: "Salad",
         },
         {
             _id: "2",
@@ -45,7 +43,7 @@ const StoreContextProvider = (props) => {
             image: "https://images.unsplash.com/photo-1534353436294-0dbd4bdac845?w=500",
             price: 100,
             description: "Freshly wrapped sautéed vegetables.",
-            category: "Rolls"
+            category: "Rolls",
         },
         {
             _id: "3",
@@ -53,25 +51,30 @@ const StoreContextProvider = (props) => {
             image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=500",
             price: 250,
             description: "Rich chocolate layered with smooth ganache.",
-            category: "Cake"
-        }
+            category: "Cake",
+        },
     ];
 
     // 🍔 Fetch Food List
     const fetchFoodList = async () => {
         try {
             setLoading(true);
+
             const response = await axios.get(`${url}/api/food/list`);
 
-            if (response.data.success && response.data.data.length > 0) {
+            if (
+                response.data.success &&
+                response.data.data.length > 0
+            ) {
                 setFoodList(response.data.data);
-                console.log("🛒 Live Food Data Synced:", response.data.data);
             } else {
                 setFoodList(fallback_list);
             }
         } catch (error) {
-            console.log("⚠️ Backend offline, loading fallback data.");
-            console.error("Failed executing catalog data load streams:", error);
+            console.error(
+                "Failed executing catalog data load:",
+                error
+            );
             setFoodList(fallback_list);
         } finally {
             setLoading(false);
@@ -79,170 +82,178 @@ const StoreContextProvider = (props) => {
     };
 
     // 👤 Check User Authentication
-    const checkUserAuth = async (localToken) => {
+    const checkUserAuth = async (activeToken) => {
         try {
-            const activeToken = localToken || token || localStorage.getItem("token");
-            if (!activeToken) return false;
-
-            const response = await axios.get(`${url}/api/user/me`, {
-                headers: { token: activeToken }
-            });
+            const response = await axios.get(
+                `${url}/api/user/me`,
+                {
+                    headers: {
+                        token: activeToken,
+                    },
+                }
+            );
 
             if (response.data.success) {
                 setUser(response.data.user);
                 return true;
-            } else {
-                clearAuthSession();
-                return false;
             }
+
+            return false;
         } catch (error) {
-            if (error.response?.status === 401) {
-                localStorage.removeItem("token");
-                clearAuthSession();
-            }
-            console.error("Authentication validation failure:", error);
+            console.error("Auth check failed:", error);
             return false;
         }
-    };
-
-    // 🧹 Clear User Session
-    const clearAuthSession = () => {
-        setToken("");
-        setUser(null);
-        setCartItems({});
     };
 
     // 📥 Load Persistent Cart Data
     const loadCartData = async (activeToken) => {
         try {
-            const tokenToUse = activeToken || token || localStorage.getItem("token");
-            if (!tokenToUse) return;
-
-            const response = await axios.get(`${url}/api/cart/get`, {
-                headers: { token: tokenToUse }
-            });
+            const response = await axios.get(
+                `${url}/api/cart/get`,
+                {
+                    headers: {
+                        token: activeToken,
+                    },
+                }
+            );
 
             if (response.data.success) {
                 setCartItems(response.data.cartData || {});
             }
         } catch (error) {
-            console.error("❌ Cart retrieval processing error:", error);
+            console.error("Cart retrieval error:", error);
         }
     };
 
     // 🛒 Add Item To Cart
     const addToCart = async (itemId) => {
-        // ⚡ Instant UI Update
         setCartItems((prev) => ({
             ...prev,
-            [itemId]: (prev[itemId] || 0) + 1
+            [itemId]: (prev[itemId] || 0) + 1,
         }));
 
-        // 🔄 Sync With Backend (Fresh token token pull logic)
-        const activeToken = token || localStorage.getItem("token");
+        const activeToken =
+            token || localStorage.getItem("token");
+
         if (activeToken) {
             try {
                 await axios.post(
                     `${url}/api/cart/add`,
                     { itemId },
-                    { headers: { token: activeToken } }
+                    {
+                        headers: {
+                            token: activeToken,
+                        },
+                    }
                 );
             } catch (error) {
-                console.error("❌ Database cart incremental syncing fault:", error);
+                console.error("Cart sync error:", error);
             }
         }
     };
 
     // ❌ Remove Item From Cart
     const removeFromCart = async (itemId) => {
-        // ⚡ Instant UI Update
         setCartItems((prev) => {
             const updated = { ...prev };
+
             if (updated[itemId] > 1) {
                 updated[itemId] -= 1;
             } else {
                 delete updated[itemId];
             }
+
             return updated;
         });
 
-        // 🔄 Sync With Backend (Fresh token pull logic)
-        const activeToken = token || localStorage.getItem("token");
+        const activeToken =
+            token || localStorage.getItem("token");
+
         if (activeToken) {
             try {
                 await axios.post(
                     `${url}/api/cart/remove`,
                     { itemId },
-                    { headers: { token: activeToken } }
+                    {
+                        headers: {
+                            token: activeToken,
+                        },
+                    }
                 );
             } catch (error) {
-                console.error("❌ Database cart decremental syncing fault:", error);
+                console.error("Cart sync error:", error);
             }
         }
     };
 
-    // 💰 Calculate Total Cart Amount
+    // 💰 Calculate Total
     const getTotalCartAmount = () => {
         let totalAmount = 0;
+
         for (const item in cartItems) {
             if (cartItems[item] > 0) {
-                let itemInfo = food_list.find((product) => product._id === item);
+                let itemInfo = food_list.find(
+                    (product) => product._id === item
+                );
+
                 if (itemInfo) {
-                    totalAmount += itemInfo.price * cartItems[item];
+                    totalAmount +=
+                        itemInfo.price * cartItems[item];
                 }
             }
         }
+
         return totalAmount;
     };
 
-    // 🚀 Initial App Bootstrap
-    const loadData = async () => {
-        await fetchFoodList();
+    // 🚀 Initial Bootstrap
+    useEffect(() => {
+        async function loadAllData() {
+            await fetchFoodList();
 
-        const persistentToken = localStorage.getItem("token");
+            const persistentToken =
+                localStorage.getItem("token");
 
-        if (persistentToken) {
-            setToken(persistentToken);
+            if (persistentToken) {
+                setToken(persistentToken);
 
-            // 👤 Restore User Session Aur check karo ki token valid hai ya nahi
-            const isAuthValid = await checkUserAuth(persistentToken);
+                // ✅ Update Axios token globally
+                axios.defaults.headers.common["token"] =
+                    persistentToken;
 
-            // 🛒 Agar user valid hai, tabhi cart fetch karo
-            if (isAuthValid) {
-                await loadCartData(persistentToken);
+                const isAuthValid =
+                    await checkUserAuth(persistentToken);
+
+                if (isAuthValid) {
+                    await loadCartData(persistentToken);
+                }
             }
         }
-    };
 
-    // 🚀 Execute On App Start
-    useEffect(() => {
-        loadData();
+        loadAllData();
     }, []);
 
-    // 🌍 Global Context Value
-    const contextValue = {
-        // 🍔 Food
-        food_list,
-        setFoodList,
+    // ✅ Keep Axios token synced whenever login/logout happens
+    useEffect(() => {
+        if (token) {
+            axios.defaults.headers.common["token"] = token;
+        } else {
+            delete axios.defaults.headers.common["token"];
+        }
+    }, [token]);
 
-        // 🛒 Cart
+    const contextValue = {
+        food_list,
         cartItems,
-        setCartItems,
         addToCart,
         removeFromCart,
         getTotalCartAmount,
-
-        // 🔐 Auth
         token,
         setToken,
         user,
         setUser,
-
-        // ⏳ Loading
         loading,
-
-        // 🌐 Backend URL
-        url
+        url,
     };
 
     return (
