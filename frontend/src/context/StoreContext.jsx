@@ -12,7 +12,7 @@ export const StoreContext = createContext(null);
 
 const StoreContextProvider = (props) => {
     // 🌐 Backend Base URL
-    const url = "http://localhost:8000";
+    const url = "https://foodverse-mern-app.onrender.com";
 
     // 🔐 Authentication State
     const [token, setToken] = useState("");
