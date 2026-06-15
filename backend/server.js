@@ -1,5 +1,3 @@
-// File Location: backend/server.js
-
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -20,20 +18,22 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 8000;
 
-// ==========================================
-// 📁 __dirname FIX FOR ES MODULES
-// ==========================================
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // ==========================================
-// 🌍 CORS CONFIGURATION (MUST BE FIRST)
+// 🌍 CORS CONFIGURATION
 // ==========================================
+// Hum comma-separated string ko array mein convert kar rahe hain 
+// ya phir direct URL le rahe hain
+const allowedOrigins = process.env.FRONTEND_URL 
+    ? process.env.FRONTEND_URL.split(",") 
+    : ["http://localhost:5173", "http://localhost:5174"];
+
 app.use(cors({
-    origin: ["http://localhost:5173", "http://127.0.0.1:5173"],
-    credentials: true,
+    origin: allowedOrigins,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "token"] 
+    credentials: true
 }));
 
 // ==========================================
@@ -49,13 +49,9 @@ app.use((req, res, next) => {
 });
 
 // ==========================================
-// 🗄️ DATABASE CONNECTION
+// 🗄️ DATABASE & FILES
 // ==========================================
 connectDB();
-
-// ==========================================
-// 📁 STATIC FILES
-// ==========================================
 app.use("/images", express.static(path.join(__dirname, "uploads")));
 
 // ==========================================
@@ -66,30 +62,13 @@ app.use("/api/user", userRouter);
 app.use("/api/cart", cartRouter);
 app.use("/api/order", orderRouter);
 
-// ==========================================
-// 🏠 HOME ROUTE
-// ==========================================
 app.get("/", (req, res) => {
-    res.send("🚀 API Working smoothly with Razorpay Configured!");
-});
-
-// ==========================================
-// ❌ GLOBAL ERROR HANDLER
-// ==========================================
-app.use((err, req, res, next) => {
-    console.error("🔥 SERVER ERROR:", err);
-    res.status(500).json({
-        success: false,
-        message: err.message || "Internal Server Error"
-    });
+    res.send("🚀 API Working smoothly!");
 });
 
 // ==========================================
 // 🚀 START SERVER
 // ==========================================
-app.listen(port, "0.0.0.0", () => {
-    console.log("======================================");
-    console.log(`🚀 Backend Running On Port ${port}`);
-    console.log(`🌐 http://localhost:${port}`);
-    console.log("======================================");
+app.listen(port, () => {
+    console.log(`🚀 Server running on port ${port}`);
 });
