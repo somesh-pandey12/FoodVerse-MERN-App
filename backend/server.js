@@ -24,16 +24,13 @@ const __dirname = path.dirname(__filename);
 // ==========================================
 // 🌍 CORS CONFIGURATION
 // ==========================================
-// Hum comma-separated string ko array mein convert kar rahe hain 
-// ya phir direct URL le rahe hain
 const allowedOrigins = process.env.FRONTEND_URL 
     ? process.env.FRONTEND_URL.split(",") 
     : ["http://localhost:5173", "http://localhost:5174"];
 
 app.use(cors({
-    origin: allowedOrigins,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    credentials: true
+  origin: "https://food-verse-mern-app.vercel.app", // Yahan apna Vercel URL dalein
+  credentials: true
 }));
 
 // ==========================================
