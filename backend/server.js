@@ -5,6 +5,8 @@ import mongoose from "mongoose";
 import path from "path";
 import cookieParser from "cookie-parser";
 import { fileURLToPath } from "url";
+import { createServer } from "http";
+import { Server } from "socket.io";
 
 // Router Imports
 import { connectDB } from "./config/db.js";
@@ -24,14 +26,16 @@ const __dirname = path.dirname(__filename);
 // ==========================================
 // 🌍 CORS CONFIGURATION
 // ==========================================
-const allowedOrigins = process.env.FRONTEND_URL 
-    ? process.env.FRONTEND_URL.split(",") 
-    : ["http://localhost:5173", "http://localhost:5174"];
+const allowedOrigins = process.env.FRONTEND_URL
+  ? process.env.FRONTEND_URL.split(",")
+  : ["http://localhost:5173", "http://localhost:5174"];
 
-app.use(cors({
-  origin: "https://food-verse-mern-app.vercel.app", // Yahan apna Vercel URL dalein
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: allowedOrigins,
+    credentials: true,
+  })
+);
 
 // ==========================================
 // 🛡️ GLOBAL MIDDLEWARES
@@ -41,14 +45,18 @@ app.use(cookieParser());
 
 // Google OAuth Fix
 app.use((req, res, next) => {
-    res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
-    next();
+  res.setHeader(
+    "Cross-Origin-Opener-Policy",
+    "same-origin-allow-popups"
+  );
+  next();
 });
 
 // ==========================================
 // 🗄️ DATABASE & FILES
 // ==========================================
 connectDB();
+
 app.use("/images", express.static(path.join(__dirname, "uploads")));
 
 // ==========================================
@@ -60,12 +68,41 @@ app.use("/api/cart", cartRouter);
 app.use("/api/order", orderRouter);
 
 app.get("/", (req, res) => {
-    res.send("🚀 API Working smoothly!");
+  res.send("🚀 API Working smoothly!");
+});
+
+// ==========================================
+// 🔌 SOCKET.IO SETUP
+// ==========================================
+const httpServer = createServer(app);
+
+const io = new Server(httpServer, {
+  cors: {
+    origin: allowedOrigins,
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+});
+
+io.on("connection", (socket) => {
+  console.log("✅ User Connected:", socket.id);
+
+  // Admin status update
+  socket.on("update_order_status", (data) => {
+    console.log("📦 Status Updated:", data);
+
+    // Sabhi connected clients ko update bhejo
+    io.emit("status_changed", data);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("❌ User Disconnected:", socket.id);
+  });
 });
 
 // ==========================================
 // 🚀 START SERVER
 // ==========================================
-app.listen(port, () => {
-    console.log(`🚀 Server running on port ${port}`);
+httpServer.listen(port, () => {
+  console.log(`🚀 Server running on port ${port}`);
 });

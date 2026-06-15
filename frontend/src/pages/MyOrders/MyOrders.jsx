@@ -1,6 +1,8 @@
 // File Location: frontend/src/pages/MyOrders/MyOrders.jsx
 
 import React from "react";
+import { toast } from "react-toastify";
+import 'react-toastify/dist/ReactToastify.css';
 
 const {
     useContext,
@@ -77,6 +79,19 @@ const MyOrders = () => {
             setLoading(false);
         }
     };
+    useEffect(() => {
+    socket.on("status_changed", (data) => {
+        toast.info(`Order #${data.orderId.slice(-5)} status updated to: ${data.status}`);
+        fetchOrders(); 
+    });
+}, [socket]);
+
+    useEffect(() => {
+    socket.on("status_changed", (data) => {
+        console.log("Order status updated:", data);
+        alert(`Your order status is now: ${data.status}`);
+    });
+}, [socket]);
 
     // 🚀 Auto Fetch + Live Polling
     useEffect(() => {
