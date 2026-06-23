@@ -1,14 +1,13 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import mongoose from "mongoose";
-import path from "path";
 import cookieParser from "cookie-parser";
+import path from "path";
 import { fileURLToPath } from "url";
 import { createServer } from "http";
 import { Server } from "socket.io";
 
-// Router Imports
+// Import Routes
 import { connectDB } from "./config/db.js";
 import foodRouter from "./routes/foodRoute.js";
 import userRouter from "./routes/userRoute.js";
@@ -24,39 +23,35 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // ==========================================
-// 🌍 CORS CONFIGURATION
+// 🌍 IMPROVED CORS CONFIGURATION
 // ==========================================
-const allowedOrigins = process.env.FRONTEND_URL
-  ? process.env.FRONTEND_URL.split(",")
-  : ["http://localhost:5173", "http://localhost:5174"];
+const allowedOrigins = process.env.FRONTEND_URL 
+  ? process.env.FRONTEND_URL.split(",") 
+  : ["http://localhost:5173", "http://localhost:5174", "https://food-verse-mern-app.vercel.app"];
 
-app.use(
-  cors({
+app.use(cors({
     origin: allowedOrigins,
     credentials: true,
-  })
-);
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization", "token"] // 'token' add kiya hai agar aap header mein token bhej rahe hain
+}));
 
 // ==========================================
-// 🛡️ GLOBAL MIDDLEWARES
+// 🛡️ MIDDLEWARES
 // ==========================================
 app.use(express.json());
 app.use(cookieParser());
 
-// Google OAuth Fix
+// Request Logger (Debug ke liye)
 app.use((req, res, next) => {
-  res.setHeader(
-    "Cross-Origin-Opener-Policy",
-    "same-origin-allow-popups"
-  );
-  next();
+    console.log(`[${req.method}] ${req.url}`);
+    next();
 });
 
 // ==========================================
-// 🗄️ DATABASE & FILES
+// 🗄️ DATABASE & STATIC FILES
 // ==========================================
 connectDB();
-
 app.use("/images", express.static(path.join(__dirname, "uploads")));
 
 // ==========================================
@@ -67,15 +62,10 @@ app.use("/api/user", userRouter);
 app.use("/api/cart", cartRouter);
 app.use("/api/order", orderRouter);
 
-app.get("/", (req, res) => {
-  res.send("🚀 API Working smoothly!");
-});
-
 // ==========================================
 // 🔌 SOCKET.IO SETUP
 // ==========================================
 const httpServer = createServer(app);
-
 const io = new Server(httpServer, {
   cors: {
     origin: allowedOrigins,
@@ -85,19 +75,8 @@ const io = new Server(httpServer, {
 });
 
 io.on("connection", (socket) => {
-  console.log("✅ User Connected:", socket.id);
-
-  // Admin status update
-  socket.on("update_order_status", (data) => {
-    console.log("📦 Status Updated:", data);
-
-    // Sabhi connected clients ko update bhejo
-    io.emit("status_changed", data);
-  });
-
-  socket.on("disconnect", () => {
-    console.log("❌ User Disconnected:", socket.id);
-  });
+  console.log("✅ Socket Connected:", socket.id);
+  socket.on("disconnect", () => console.log("❌ Socket Disconnected"));
 });
 
 // ==========================================
