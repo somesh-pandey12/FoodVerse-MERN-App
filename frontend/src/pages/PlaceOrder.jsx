@@ -33,34 +33,42 @@ const PlaceOrder = () => {
         const orderData = {
             address: data,
             items: orderItems,
-            amount: getTotalCartAmount() + 40
+            amount: getTotalCartAmount() + 40,
+            email: data.email // Email backend ko bhej rahe hain
         };
 
-        // 2. Auth Header
-        const headers = { Authorization: `Bearer ${localStorage.getItem("token") || token}` };
+        // 2. Auth Header (Ensure token is available)
+        const currentToken = localStorage.getItem("token") || token;
+        const headers = { token: currentToken }; // Backend ke hisab se header key set karein
 
         try {
             if (paymentMethod === "razorpay") {
                 const response = await axios.post(`${url}/api/order/place`, orderData, { headers });
 
                 if (response.data.success) {
-                    const { razorpayOrder } = response.data;
+                    // Backend se aaye "order" object ko use karein
+                    const { order } = response.data; 
+                    
                     const options = {
-                        key: import.meta.env.VITE_RAZORPAY_KEY_ID, 
-                        amount: razorpayOrder.amount,
+                        key: import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_Sy0FMTTj4VPu1J", 
+                        amount: order.amount,
                         currency: "INR",
                         name: "FoodVerse",
-                        order_id: razorpayOrder.id,
+                        order_id: order.id,
                         handler: async function (paymentResponse) {
-                            const verify = await axios.post(`${url}/api/order/verify`, {
-                                razorpay_order_id: razorpayOrder.id,
-                                razorpay_payment_id: paymentResponse.razorpay_payment_id,
-                                razorpay_signature: paymentResponse.razorpay_signature
-                            }, { headers });
+                            try {
+                                const verify = await axios.post(`${url}/api/order/verify`, {
+                                    orderId: response.data.orderId,
+                                    success: true,
+                                    razorpay_payment_id: paymentResponse.razorpay_payment_id
+                                }, { headers });
 
-                            if (verify.data.success) {
-                                alert("Payment Successful!");
-                                navigate("/myorders");
+                                if (verify.data.success) {
+                                    alert("Payment Successful!");
+                                    navigate("/myorders");
+                                }
+                            } catch (err) {
+                                alert("Payment verification failed");
                             }
                         },
                         prefill: { name: `${data.firstName} ${data.lastName}`, email: data.email, contact: data.phone },
@@ -68,8 +76,11 @@ const PlaceOrder = () => {
                     };
                     const rzp = new window.Razorpay(options);
                     rzp.open();
+                } else {
+                    alert(response.data.message || "Order placement failed");
                 }
             } else {
+                // COD Flow
                 const response = await axios.post(`${url}/api/order/place`, { ...orderData, paymentType: "COD" }, { headers });
                 if (response.data.success) {
                     alert("Order Placed Successfully!");
@@ -78,18 +89,19 @@ const PlaceOrder = () => {
             }
         } catch (error) {
             console.error("Checkout Error:", error);
-            alert("Checkout failed. Check console for details.");
+            alert("Checkout failed. Please check if you are logged in.");
         }
     };
 
     useEffect(() => {
-        if (!localStorage.getItem("token") || getTotalCartAmount() === 0) {
+        if (!token && !localStorage.getItem("token")) {
             navigate("/cart");
         }
-    }, [getTotalCartAmount, navigate]);
+    }, [token, navigate]);
 
     return (
         <form onSubmit={placeOrderHandler} className="place-order flex flex-col md:flex-row items-start justify-between gap-12 mt-24 max-w-5xl mx-auto p-4">
+            {/* Delivery Fields remains the same as your original code */}
             <div className="place-order-left w-full max-w-xl">
                 <p className="title text-2xl font-bold mb-8 text-gray-800">Delivery Information</p>
                 <div className="multi-fields flex gap-4 mb-4">
@@ -110,9 +122,9 @@ const PlaceOrder = () => {
             </div>
 
             <div className="place-order-right w-full max-w-md flex flex-col gap-6">
-                <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col gap-4">
+                <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100 shadow-sm">
                     <h2 className="text-xl font-bold text-gray-800">Cart Totals</h2>
-                    <div className="flex flex-col gap-3 text-sm text-gray-600">
+                    <div className="flex flex-col gap-3 text-sm text-gray-600 mt-4">
                         <div className="flex justify-between pb-2 border-b"><span>Subtotal</span><span className="font-semibold">₹{getTotalCartAmount()}</span></div>
                         <div className="flex justify-between pb-2 border-b"><span>Delivery Fee</span><span className="font-semibold">₹40</span></div>
                         <div className="flex justify-between pt-1 text-base font-bold text-gray-900"><span>Total</span><span className="text-orange-500">₹{getTotalCartAmount() + 40}</span></div>
