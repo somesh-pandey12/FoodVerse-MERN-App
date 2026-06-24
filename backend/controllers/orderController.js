@@ -1,6 +1,5 @@
 import orderModel from "../models/orderModel.js";
 import userModel from "../models/userModel.js";
-import Stripe from "stripe";
 import Razorpay from "razorpay";
 import { transporter } from "../config/emailConfig.js";
 import "dotenv/config";
@@ -11,8 +10,8 @@ const razorpay = new Razorpay({
 });
 
 const placeOrder = async (req, res) => {
-    const frontend_url = process.env.FRONTEND_URL || "http://127.0.0.1:5173";
     try {
+        // 1. Order save karna DB mein
         const newOrder = new orderModel({
             userId: req.body.userId,
             items: req.body.items,
@@ -25,28 +24,31 @@ const placeOrder = async (req, res) => {
         await newOrder.save();
         await userModel.findByIdAndUpdate(req.body.userId, { cartData: {} });
 
-        // Email Notification
-        await transporter.sendMail({
-            from: '"FoodVerse" <your-email@gmail.com>',
-            to: req.body.email, // Ensure email is passed in req.body
-            subject: "Order Confirmed! 🍔",
-            text: `Hello, your order #${newOrder._id} has been confirmed!`,
-        });
-
+        // 2. Razorpay Order create karna
         const razorpayOrder = await razorpay.orders.create({
-            amount: req.body.amount * 100,
+            amount: req.body.amount * 100, // INR paise mein convert
             currency: "INR",
             receipt: `receipt_${newOrder._id}`
         });
 
+        // 3. Response frontend ko turant bhej dena
         res.status(200).json({ success: true, orderId: newOrder._id, order: razorpayOrder });
+
+        // 4. Email Notification (Non-blocking: Await nahi lagaya hai)
+        // Taaki agar email fail ho toh bhi order process na ruke
+        transporter.sendMail({
+            from: '"FoodVerse" <your-email@gmail.com>',
+            to: req.body.email, 
+            subject: "Order Confirmed! 🍔",
+            text: `Hello, your order #${newOrder._id} has been confirmed!`,
+        }).catch(err => console.error("Email notification failed:", err));
+
     } catch (error) {
-        console.log(error);
-        res.status(500).json({ success: false, message: "Error" });
+        console.log("Order Error:", error);
+        res.status(500).json({ success: false, message: "Error placing order" });
     }
 };
 
-// Yahan se function bahar nikal gaya hai
 const updateStatus = async (req, res) => {
     try {
         await orderModel.findByIdAndUpdate(req.body.orderId, { status: req.body.status });
@@ -88,5 +90,4 @@ const listOrders = async (req, res) => {
     }
 };
 
-// Sahi Export List
 export { placeOrder, verifyOrder, userOrders, updateStatus, listOrders };
